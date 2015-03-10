@@ -1,6 +1,6 @@
-let s:bufname   = 'search-results.agv'
+let s:bufname   = 'search-results.agsv'
 let s:lastPosOn = []
-let s:lastWin   = ''
+let s:lastWin   = 1
 
 " TODO: put these in a dict or maybe make an object
 let s:patEn          = '[0m[K'
@@ -36,12 +36,23 @@ let s:defaults  = {
 let s:usage = [
             \ ' Search Results Key Bindings',
             \ ' ---------------------------',
+            \ ' ',
+            \ ' Results Window Commands',
             \ ' p - navigate file paths forward',
             \ ' P - navigate files paths backwards',
             \ ' r - navigate results forward',
             \ ' R - navigate results backwards',
             \ ' a - display the file path for current results',
             \ ' u - usage',
+            \ ' ',
+            \ ' Open Window Commands',
+            \ ' oa - open file above results window',
+            \ ' ob - open file below results window',
+            \ ' ol - open file left results window',
+            \ ' or - open file right results window',
+            \ ' os - open file in the results window',
+            \ ' ou - open file in previously opened window',
+            \ ' ',
             \ ' ---------------------------'
             \ ]
 
@@ -58,12 +69,12 @@ let s:cmd = {
 
 let s:flags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
-function! ag#Usage()
+function! ags#Usage()
     for l:u in s:usage | echom l:u | endfor
 endfunction
 
 " TODO optimize this for large results
-function! ag#Run(pattern, args, path)
+function! ags#Run(pattern, args, path)
     let l:cmd = '/usr/local/bin/ag'
 
     for [ key, value ] in items(s:defaults)
@@ -83,15 +94,20 @@ endfunction
 " @param cmd - one of the commands from s:cmd
 " @param sameWin - true to open in the current window
 " @param preview - true to keep focus with the current window
+" @param lastWin - true to reuse last window opened
 function! s:open(name, cmd, ...)
     let sameWin = a:0 && a:1
     let preview = a:0 > 1 && a:2
+    let lastWin = a:0 > 2 && a:3
     let cmd     = s:cmd[a:cmd]
+
+    if lastWin
+        execute s:lastWin . 'wincmd w'
+        let sameWin = 1
+    endif
 
     let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
     let wincmd = sameWin ? 'edit ' : cmd . ' new '
-
-    echom cmd . ' ' . bufcmd . ' ' . wincmd
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
@@ -104,6 +120,8 @@ function! s:open(name, cmd, ...)
         execute wincmd . a:name
     endif
 
+    let s:lastWin = winnr()
+
     if preview
         execute 'wincmd p'
     endif
@@ -113,80 +131,30 @@ function! s:openResultsBuffer()
     call s:open(s:bufname, 'bottom')
 endfunction
 
-"function! ag#OpenBuffer(name)
-    "if bufexists(a:name)
-        "let l:bfnr = bufwinnr(a:name)
-        "if l:bfnr == -1
-            ""execute 'sbuffer ' . bufnr(a:name)
-
-            "" ABSOLUTE
-            ""exe 'bo sbuffer ' . bufnr(a:name)
-            ""exe 'to sbuffer ' . bufnr(a:name)
-            "" rest same as abelow
-
-            "" SAME WINDOW
-            ""exe 'buffer ' . bufnr(a:name)
-        "else
-            "execute l:bfnr . 'wincmd w'
-        "endif
-    "else
-        "execute 'new ' . a:name
-
-        "" ABSOLUTE
-        ""exe 'bo new ' . a:name         " bottom
-        ""exe 'to new ' . a:name         " top
-        ""exe 'vert bo new ' . a:name    " right
-        ""exe 'vert to new ' . a:name    " left
-
-        "" RELATIVE (observe splitbelow and splitright)
-        ""exe 'bel new ' . a:name        " below
-        ""exe 'abo new ' . a:name        " above
-        ""exe 'vert bel new ' . a:name   " right
-        ""exe 'vert abo new ' . a:name   " left
-
-        "" SAME WINDOW
-        ""exe 'edit ' . a:name
-    "endif
-"endfunction
-
-"function! ag#ReplaceBuffer(nameNew, nameOld)
-"if !bufexists(a:nameOld)
-"call ag#OpenBuffer(a:nameNew)
-"return
-"endif
-
-"let l:oldBfnr = bufwinnr(a:nameOld)
-"if l:oldBfnr == -1
-"call ag#OpenBuffer(a:nameNew)
-"endif
-
-"" TODO: left here
-"endfunction
-
-function! ag#ModifyOn()
+function! ags#ModifyOn()
     execute 'setlocal modifiable'
 endfunction
 
-function! ag#ModifyOff()
+function! ags#ModifyOff()
     execute 'setlocal nomodifiable'
 endfunction
 
-function! ag#Execute(...)
-    call ag#ModifyOn()
+function! ags#Execute(...)
+    call ags#ModifyOn()
     for l:cmd in a:000 | execute l:cmd | endfor
-    call ag#ModifyOff()
+    call ags#ModifyOff()
 endfunction
 
 function! ShowResults(lines)
     call s:openResultsBuffer()
-    call ag#ModifyOn()
+    call ags#ModifyOn()
     execute '%delete'
     call append(0, a:lines)
-    call ag#ModifyOff()
+    call ags#ModifyOff()
     execute 'normal gg'
 endfunction
 
-function! ag#Process(data)
+function! ags#Process(data)
     let l:data       = substitute(a:data, '\e', '', 'g')
     let l:lines      = split(l:data, '\n')
     let l:maxw       = 0
@@ -210,13 +178,13 @@ function! ag#Process(data)
     return l:result
 endfunction
 
-function! ag#Search(pattern, args, path)
-    let l:data = ag#Run(a:pattern, a:args, a:path)
-    let l:lines = ag#Process(l:data)
+function! ags#Search(pattern, args, path)
+    let l:data = ags#Run(a:pattern, a:args, a:path)
+    let l:lines = ags#Process(l:data)
     call ShowResults(l:lines)
 endfunction
 
-function! ag#FilePath(lineNo)
+function! ags#FilePath(lineNo)
     let l:no = a:lineNo
 
     while l:no >= 0 && getline(l:no) !~ s:patFile
@@ -226,7 +194,7 @@ function! ag#FilePath(lineNo)
     return substitute(getline(l:no), '^' . s:patStFile . '\(.\{-}\)' . s:patEn, '\1', '')
 endfunction
 
-function! ag#ResultPosition(lineNo)
+function! ags#ResultPosition(lineNo)
     let l:line         = getline(a:lineNo)
     let l:cursorColumn = 0
     let l:cursorLine   = 0
@@ -248,25 +216,35 @@ function! ag#ResultPosition(lineNo)
     return { 'line': l:cursorLine, 'column': l:cursorColumn }
 endfunction
 
-function! ag#OpenFile(lineNo, flags)
-    let path  = fnameescape(ag#FilePath(a:lineNo))
-    let cpos  = ag#ResultPosition(a:lineNo)
+" Opens a results file
+"
+" @param lineNo  - the line number in the search results buffer
+" @param flags   - window location flags
+" @param flags|s - opens the file in the search results window
+" @param flags|a - opens the file above the search results window
+" @param flags|b - opens the file below the search results window
+" @param flags|r - opens the file to the right of the search results window
+" @param flags|l - opens the file to the left of the search results window
+" @param flags|u - opens the file to in a previously opened window
+function! ags#OpenFile(lineNo, flags)
+    let path  = fnameescape(ags#FilePath(a:lineNo))
+    let cpos  = ags#ResultPosition(a:lineNo)
     let flags = has_key(s:flags, a:flags) ? s:flags[a:flags] : 'above'
     let wpos  = a:flags == 's'
+    let reuse = a:flags == 'u'
 
     if filereadable(path)
-        call s:open(path, flags, wpos)
-        "call ag#OpenBuffer(fnameescape(l:path))
+        call s:open(path, flags, wpos, 0, reuse)
         execute 'normal ' . cpos.line . 'G' . cpos.column . '|'
     endif
 endfunction
 
-"function! ag#ViewFile(lineNo)
-"call ag#OpenFile(a:lineNo)
-"call ag#OpenBuffer(s:bufname)
+"function! ags#ViewFile(lineNo)
+"call ags#OpenFile(a:lineNo)
+"call ags#OpenBuffer(s:bufname)
 "endfunction
 
-function! ag#ClearResultsOn()
+function! ags#ClearResultsOn()
     if empty(s:lastPosOn) | return | endif
 
     let l:lineNo    = s:lastPosOn[1]
@@ -277,16 +255,16 @@ function! ag#ClearResultsOn()
     let l:repl = s:patStRes . '\1' . s:patEn
     let l:cmd  = 'silent ' . l:lineNo . 's/\m' . l:src . '/' . l:repl . '/ge'
 
-    call ag#Execute(l:cmd)
+    call ags#Execute(l:cmd)
     call setpos('.', l:pos)
 endfunction
 
-function! ag#NavigateResults(...)
-    call ag#ClearResultsOn()
+function! ags#NavigateResults(...)
+    call ags#ClearResultsOn()
 
     let l:flags = a:0 > 0 ? a:1 : 'w'
     call search(s:patStRes . '.\{-}' . s:patEn, l:flags)
-    execute 'normal zz'
+    "execute 'normal zz'
 
     let l:pos = getpos('.')
     let l:lineNo = line('.')
@@ -297,24 +275,24 @@ function! ag#NavigateResults(...)
     let l:repl = s:patStRes . s:patOnDelim . '\1' . s:patOnDelim . s:patEn
     let l:cmd  = 'silent ' . l:lineNo . 's/\m\%' . l:columnNo . 'c' . l:src . '/' . l:repl . '/e'
 
-    call ag#Execute(l:cmd)
+    call ags#Execute(l:cmd)
     call setpos('.', l:pos)
 
     let s:lastPosOn = l:pos
 endfunction
 
-function! ag#HighlightResult()
+function! ags#HighlightResult()
     let l:line = getline('.')
     let l:result = s:patStRes . '.\{-}' . s:patEn
     if l:line =~ l:result
         let [bufnum, lnum, col, off] = getpos('.')
         call setpos('.', [bufnum, lnum, 0, off])
-        call ag#NavigateResults()
+        call ags#NavigateResults()
     endif
 endfunction
 
-function! ag#NavigateResultsFiles(...)
-    call ag#ClearResultsOn()
+function! ags#NavigateResultsFiles(...)
+    call ags#ClearResultsOn()
     let l:flags = a:0 > 0 ? a:1 : 'w'
     call search(s:patFile, l:flags)
     execute 'normal zt'
