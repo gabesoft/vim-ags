@@ -259,7 +259,10 @@ function! ags#ClearResultsOn()
     if empty(s:lastPosOn) | return | endif
 
     let l:lineNo    = s:lastPosOn[1]
+    let l:lastNo    = line('$')
     let s:lastPosOn = []
+
+    if l:lineNo < 0 || l:lineNo > l:lastNo | return | endif
 
     let l:pos  = getpos('.')
     let l:src  = s:patStResEsc . s:patOnDelimEsc . '\(.\{-}\)' . s:patOnDelimEsc . s:patEnEsc
