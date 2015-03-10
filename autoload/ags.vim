@@ -1,6 +1,6 @@
 let s:bufname   = 'search-results.agsv'
 let s:lastPosOn = []
-let s:lastWin   = 1
+let s:lastWin   = 0
 
 " TODO: put these in a dict or maybe make an object
 let s:patEn          = '[0m[K'
@@ -46,12 +46,12 @@ let s:usage = [
             \ ' u - usage',
             \ ' ',
             \ ' Open Window Commands',
-            \ ' oa - open file above results window',
-            \ ' ob - open file below results window',
-            \ ' ol - open file left results window',
-            \ ' or - open file right results window',
+            \ ' oa - open file above the results window',
+            \ ' ob - open file below the results window',
+            \ ' ol - open file to the left of the results window',
+            \ ' or - open file to the right of the results window',
             \ ' os - open file in the results window',
-            \ ' ou - open file in previously opened window',
+            \ ' ou - open file in a previously opened window (alias Enter)',
             \ ' ',
             \ ' ---------------------------'
             \ ]
@@ -72,6 +72,10 @@ let s:flags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' 
 function! ags#Usage()
     for l:u in s:usage | echom l:u | endfor
 endfunction
+
+" TODO: this line results in an incorrect jump
+" [1;30m 40[0m[K:14: 	@git push --[32;40m[#mtags origin HEAD:master[#m[0m[K
+" from /work/ayne/Makefile
 
 " TODO optimize this for large results
 function! ags#Run(pattern, args, path)
@@ -101,13 +105,18 @@ function! s:open(name, cmd, ...)
     let lastWin = a:0 > 2 && a:3
     let cmd     = s:cmd[a:cmd]
 
-    if lastWin
+    if lastWin && s:lastWin
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
+    elseif lastWin
+        let cmd = s:cmd.above
+        let sameWin = 0
     endif
 
     let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
     let wincmd = sameWin ? 'edit ' : cmd . ' new '
+
+    echom s:lastWin . ' ' . sameWin . ' ' . cmd . ' ' . bufcmd
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
@@ -120,7 +129,9 @@ function! s:open(name, cmd, ...)
         execute wincmd . a:name
     endif
 
-    let s:lastWin = winnr()
+    if a:name != s:bufname
+        let s:lastWin = winnr()
+    endif
 
     if preview
         execute 'wincmd p'

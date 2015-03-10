@@ -24,14 +24,18 @@ nnoremap <buffer> R :AgsPrevResult<CR>
 nnoremap <buffer> p :AgsNextFile<CR>
 nnoremap <buffer> P :AgsPrevFile<CR>
 nnoremap <buffer> a :AgsFilePath<CR>
+"nnoremap <buffer> a :AgsFilePathShow<CR>
+"nnoremap <buffer> a :AgsFilePathCopy<CR>
 nnoremap <buffer> u :AgsUsage<CR>
+"nnoremap <buffer> q :AgsQuit<CR>
 
-nnoremap <buffer> oa : AgsOpenFileAbove<CR>
-nnoremap <buffer> ob : AgsOpenFileBelow<CR>
-nnoremap <buffer> ol : AgsOpenFileLeft<CR>
-nnoremap <buffer> or : AgsOpenFileRight<CR>
-nnoremap <buffer> os : AgsOpenFileSame<CR>
-nnoremap <buffer> ou : AgsOpenFileReuse<CR>
+nnoremap <buffer> oa      : AgsOpenFileAbove<CR>
+nnoremap <buffer> ob      : AgsOpenFileBelow<CR>
+nnoremap <buffer> ol      : AgsOpenFileLeft<CR>
+nnoremap <buffer> or      : AgsOpenFileRight<CR>
+nnoremap <buffer> os      : AgsOpenFileSame<CR>
+nnoremap <buffer> ou      : AgsOpenFileReuse<CR>
+nnoremap <buffer> <Enter> : AgsOpenFileReuse<CR>
 
 " window commands
 " - open in new window (same for view but the focus stays in the results
