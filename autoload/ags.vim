@@ -78,16 +78,19 @@ endfunction
 " from /work/ayne/Makefile
 
 " TODO optimize this for large results
-function! ags#Run(pattern, args, path)
+function! ags#Run(args)
     let l:cmd = '/usr/local/bin/ag'
+
+    " TODO: merge the default args with the specified args
+    "       look for the default args within args and replace if necessary
 
     for [ key, value ] in items(s:defaults)
         let l:cmd .= ' --' . key . value
     endfor
 
     let l:cmd .= ' ' . a:args
-    let l:cmd .= ' ' . a:pattern
-    let l:cmd .= ' ' . a:path
+    "let l:cmd .= ' ' . a:pattern
+    "let l:cmd .= ' ' . a:path
 
     return system(l:cmd)
 endfunction
@@ -189,8 +192,9 @@ function! ags#Process(data)
     return l:result
 endfunction
 
-function! ags#Search(pattern, args, path)
-    let l:data = ags#Run(a:pattern, a:args, a:path)
+function! ags#Search(args)
+    let args    = empty(a:args) ? expand('<cword>') : a:args
+    let l:data  = ags#Run(args)
     let l:lines = ags#Process(l:data)
     call ShowResults(l:lines)
 endfunction
