@@ -3,48 +3,47 @@
 "   - line number
 "   - column number
 "   - search result
+"   - search result highlighted (cursor on)
 
 let s:end         = '[0m[K'
 let s:col         = ':\d\{-1,}:'
-let s:endCol      = s:end . s:col
 let s:fileStart   = '[1;31m'
+let s:file        = s:fileStart . '\(.\{-1,}\)' . s:end
 let s:lineStart   = '[1;30m'
 let s:lineEnd     = s:end . '-'
+let s:lineColEnd  = s:end . s:col
 let s:resultStart = '[32;40m'
-let s:onDelim     = '[#m'
-
-
-"let s:patColNo       = ':\d\{-1,}:'
-"let s:patStFile      = '[1;31m'
-"let s:patStFileEsc   = '\[1;31m'
-"let s:patStLineNo    = '[1;30m'
-"let s:patStLineNoEsc = '\[1;30m'
-"let s:patEnLineNo    = s:patEn . '-'
-"let s:patEnLineNoEsc = s:patEnEsc . '-'
-"let s:patEnColNo     = s:patEn . s:patColNo
-"let s:patStRes       = '[32;40m'
-"let s:patStResEsc    = '\[32;40m'
-"let s:patOnDelim     = '[#m'
-"let s:patOnDelimEsc  = '\[#m'
-"let s:patFile        = '^' . s:patStFile . '.\{-1,}' . s:patEn
-
-" [1;30m 13[0m[K:8: "let s:[32;40m[#mpat[#m[0m[KStFileEsc   = '\[1;31m'
+let s:hlDelim     = '[#m'
 
 function! s:esc(pat)
-  return substitute(a:pat, '\[', '\\[', 'g')
+    return substitute(a:pat, '\[', '\\[', 'g')
 endfunction
 
-"let ags#pat#dict = {
-      "\ 'end'    : s:end,
-      "\ 'endEsc' : s:esc(s:end),
-      "\ 'col'    : s:col
-      "\}
+function! s:val(name)
+    return has_key(s:, a:name) ? s:[a:name] : a:name
+endfunction
+
+function! s:valEsc(name) 
+    return has_key(s:, a:name) ? s:esc(s:[a:name]) : a:name
+endfunction
 
 function! ags#pat#mkpat(...)
-  let pat = ''
-  for p in a:000
-    let s = has_key(s:, p) ? s:[p] : p
-    let pat .= s
-  endfor
-  return pat
+    let pat = ''
+
+    for p in a:000
+        let pat .= has_key(s:, p) ? s:[p] : p
+    endfor
+
+    let pat = substitute(pat, ':\([a-zA-Z]\{-1,}\):', '\=s:val(submatch(1))', 'g')
+    let pat = substitute(pat, ':\\\([a-zA-Z]\{-1,}\):', '\=s:valEsc(submatch(1))', 'g')
+
+    return pat
+endfunction
+
+function! ags#pat#sub(expr, pat, sub)
+    return substitute(a:expr, ags#pat#mkpat(a:pat), ags#pat#mkpat(a:sub), '')
+endfunction
+
+function! ags#pat#subg(expr, pat, sub)
+    return substitute(a:expr, ags#pat#mkpat(a:pat), ags#pat#mkpat(a:sub), 'g')
 endfunction

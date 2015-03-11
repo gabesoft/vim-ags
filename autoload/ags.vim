@@ -1,26 +1,22 @@
-let s:bufname   = 'search-results.agsv'
-let s:lastPosOn = []
-let s:lastWin   = 0
-let s:pat       = function('ags#pat#mkpat')
+" search results buffer name
+let s:bufname = 'search-results.agsv'
 
-" TODO: put these in a dict or maybe make an object
-let s:patEn          = '[0m[K'
-let s:patEnEsc       = '\[0m\[K'
-let s:patColNo       = ':\d\{-1,}:'
-let s:patStFile      = '[1;31m'
-let s:patStFileEsc   = '\[1;31m'
-let s:patStLineNo    = '[1;30m'
-let s:patStLineNoEsc = '\[1;30m'
-let s:patEnLineNo    = s:patEn . '-'
-let s:patEnLineNoEsc = s:patEnEsc . '-'
-let s:patEnColNo     = s:patEn . s:patColNo
-let s:patStRes       = '[32;40m'
-let s:patStResEsc    = '\[32;40m'
-let s:patOnDelim     = '[#m'
-let s:patOnDelimEsc  = '\[#m'
-let s:patFile        = '^' . s:patStFile . '.\{-1,}' . s:patEn
+" the position of the last highlighted search pattern
+let s:hlpos = []
 
-let s:defaults  = {
+" last window where a file from search results was opened
+let s:lastWin = 0
+
+" regex pattern functions
+let s:pat  = function('ags#pat#mkpat')
+let s:subg = function('ags#pat#subg')
+let s:sub  = function('ags#pat#sub')
+
+" ag executable
+let s:exe = '/usr/local/bin/ag'
+
+" default arguments
+let s:args = {
             \ 'heading'           : '',
             \ 'filename'          : '',
             \ 'break'             : '',
@@ -68,41 +64,28 @@ let s:cmd = {
             \ 'right'     : 'vert bel'
             \ }
 
-let s:flags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
+" window position flags
+let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
-function! ags#Usage()
-    for l:u in s:usage | echom l:u | endfor
-endfunction
+function! s:run(args)
+    let cmd  = s:exe . ' '
+    let args = a:args
 
-" TODO: this line results in an incorrect jump
-" [1;30m 40[0m[K:14: 	@git push --[32;40m[#mtags origin HEAD:master[#m[0m[K
-" from /work/ayne/Makefile
-
-" TODO optimize this for large results
-function! ags#Run(args)
-    let l:cmd = '/usr/local/bin/ag'
-
-    " TODO: merge the default args with the specified args
-    "       look for the default args within args and replace if necessary
-
-    for [ key, value ] in items(s:defaults)
-        let l:cmd .= ' --' . key . value
+    for [ key, value ] in items(s:args)
+        let cmd .= ' --' . key . value
+        let args = substitute(args, '\s\{}--' . key . '\(=\S\{}\)\?', '', 'g')
     endfor
 
-    let l:cmd .= ' ' . a:args
-    "let l:cmd .= ' ' . a:pattern
-    "let l:cmd .= ' ' . a:path
-
-    return system(l:cmd)
+    return system(cmd . ' ' . args)
 endfunction
 
 " Opens a window
 "
-" @param name - the buffer name or file path
-" @param cmd - one of the commands from s:cmd
-" @param sameWin - true to open in the current window
-" @param preview - true to keep focus with the current window
-" @param lastWin - true to reuse last window opened
+" {name}    the buffer name or file path
+" {cmd}     one of the commands from s:cmd
+" {sameWin} true to open in the current window
+" {preview} true to keep focus with the current window
+" {lastWin} true to reuse last window opened
 function! s:open(name, cmd, ...)
     let sameWin = a:0 && a:1
     let preview = a:0 > 1 && a:2
@@ -119,8 +102,6 @@ function! s:open(name, cmd, ...)
 
     let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
     let wincmd = sameWin ? 'edit ' : cmd . ' new '
-
-    echom s:lastWin . ' ' . sameWin . ' ' . cmd . ' ' . bufcmd
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
@@ -143,53 +124,59 @@ function! s:open(name, cmd, ...)
 endfunction
 
 function! s:close(name)
-  if bufexists(a:name)
-    let nr = bufnr(a:name)
-    if nr > -1
-      execute 'bw ' . nr
+    if bufexists(a:name)
+        let nr = bufnr(a:name)
+        if nr > -1
+            execute 'bw ' . nr
+        endif
     endif
-  endif
-endfunction
-
-function! ags#Quit()
-  call s:close(s:bufname)
 endfunction
 
 function! s:openResultsBuffer()
     call s:open(s:bufname, 'bottom')
 endfunction
 
-function! ags#ModifyOn()
+function! s:modifyOn()
     execute 'setlocal modifiable'
 endfunction
 
-function! ags#ModifyOff()
+function! s:modifyOff()
     execute 'setlocal nomodifiable'
 endfunction
 
-function! ags#Execute(...)
-    call ags#ModifyOn()
+" Executes a write command
+"
+function! s:execw(...)
+    call s:modifyOn()
     for l:cmd in a:000 | execute l:cmd | endfor
-    call ags#ModifyOff()
+    call s:modifyOff()
 endfunction
 
-function! ShowResults(lines)
+function! s:showResults(lines)
+    let append = a:0 && a:1
     call s:openResultsBuffer()
-    call ags#ModifyOn()
-    execute '%delete'
+    call s:modifyOn()
+
+    if !append
+        execute '%delete'
+    endif
+
     call append(0, a:lines)
-    call ags#ModifyOff()
-    execute 'normal gg'
+    call s:modifyOff()
+
+    if !append
+        execute 'normal gg'
+    endif
 endfunction
 
 " Prepares the search data for display
 "
-" @param data - raw search results
-function! ags#Process(data)
+" {data} raw search results
+function! s:process(data)
     let data    = substitute(a:data, '\e', '', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 0
-    let lineNo  = s:pat('^', 'lineStart', '\(\d\{1,}\)')
+    let lineNo  = s:pat('^:lineStart:\(\d\{1,}\)')
 
     for l in lines
         let lmatch  = matchstr(l, lineNo)
@@ -202,13 +189,13 @@ function! ags#Process(data)
         let wlen = lmaxlen - llen
 
         " right justify line numbers
-        let line = substitute(line, lineNo, s:pat('lineStart', repeat(' ', wlen), '\1'), '')
+        let line = s:sub(line, lineNo, ':lineStart:' . repeat(' ', wlen) . '\1')
 
         " add a space between line number and start of text
-        let line = substitute(line, s:pat('^\(.\{-}', 'lineEnd', '\)\(.\{1,}$\)\@='), '\1 ', '')
+        let line = s:sub(line, '^\(.\{-}:lineEnd:\)\(.\{1,}$\)\@=', '\1 ')
 
         " add a space between line and column number and start of text
-        let line = substitute(line, s:pat('^\(.\{-}', 'endCol', '\)'), '\1 ', '')
+        let line = s:sub(line, '^\(.\{-}:lineColEnd:\)', '\1 ')
 
         call add(l:result, l:line)
     endfor
@@ -216,126 +203,139 @@ function! ags#Process(data)
     return l:result
 endfunction
 
+function! s:resultPosition(lineNo)
+    let line = getline(a:lineNo)
+    let col  = 0
+    let row  = 0
+
+    if line =~ s:pat(':file:')
+        let line = getline(a:lineNo + 1)
+    endif
+
+    if strlen(line) == 0 || line =~ '^--$'
+        let line = getline(a:lineNo - 1)
+    endif
+
+    if line =~ s:pat('^:lineStart:\s\{}\d\{1,}:lineColEnd:')
+        let col = matchstr(line, ':\zs\d\{1,}:\@=')
+    endif
+
+    let row = matchstr(line, s:pat('^:lineStart:\s\{}\zs\d\{1,}[\@='))
+
+    return [0, row, col, 0]
+endfunction
+
 function! ags#Search(args)
-    let args    = empty(a:args) ? expand('<cword>') : a:args
-    let l:data  = ags#Run(args)
-    let l:lines = ags#Process(l:data)
-    call ShowResults(l:lines)
+    let args  = empty(a:args) ? expand('<cword>') : a:args
+    let data  = s:run(args)
+    let lines = s:process(data)
+    call s:showResults(lines)
 endfunction
 
 function! ags#FilePath(lineNo)
-    let l:no = a:lineNo
+    let nr = a:lineNo
 
-    while l:no >= 0 && getline(l:no) !~ s:patFile
-        let l:no = l:no - 1
+    while nr >= 0 && getline(nr) !~ s:pat(':file:')
+        let nr = nr - 1
     endw
 
-    return substitute(getline(l:no), '^' . s:patStFile . '\(.\{-}\)' . s:pat('end'), '\1', '')
-endfunction
-
-function! ags#ResultPosition(lineNo)
-    let l:line         = getline(a:lineNo)
-    let l:cursorColumn = 0
-    let l:cursorLine   = 0
-
-    if l:line =~ s:patFile
-        let l:line = getline(a:lineNo + 1)
-    endif
-
-    if strlen(l:line) == 0 || l:line =~ '--'
-        let l:line = getline(a:lineNo - 1)
-    endif
-
-    if l:line =~ '^' . s:patStLineNo . '\s\{}\d\{1,}' . s:patEnColNo
-        let l:cursorColumn = matchstr(l:line, ':\zs\d\{1,}:\@=')
-    endif
-
-    let l:cursorLine = matchstr(l:line, '^' . s:patStLineNo . '\s\{}\zs\d\{1,}[\@=')
-
-    return { 'line': l:cursorLine, 'column': l:cursorColumn }
+    return s:sub(getline(nr), '^:file:', '\1')
 endfunction
 
 " Opens a results file
 "
-" @param lineNo  - the line number in the search results buffer
-" @param flags   - window location flags
-" @param flags|s - opens the file in the search results window
-" @param flags|a - opens the file above the search results window
-" @param flags|b - opens the file below the search results window
-" @param flags|r - opens the file to the right of the search results window
-" @param flags|l - opens the file to the left of the search results window
-" @param flags|u - opens the file to in a previously opened window
+" {lineNo}  the line number in the search results buffer
+" {flags}   window location flags
+" {flags|s} opens the file in the search results window
+" {flags|a} opens the file above the search results window
+" {flags|b} opens the file below the search results window
+" {flags|r} opens the file to the right of the search results window
+" {flags|l} opens the file to the left of the search results window
+" {flags|u} opens the file to in a previously opened window
 function! ags#OpenFile(lineNo, flags)
     let path  = fnameescape(ags#FilePath(a:lineNo))
-    let cpos  = ags#ResultPosition(a:lineNo)
-    let flags = has_key(s:flags, a:flags) ? s:flags[a:flags] : 'above'
+    let cpos  = s:resultPosition(a:lineNo)
+    let flags = has_key(s:wflags, a:flags) ? s:wflags[a:flags] : 'above'
     let wpos  = a:flags == 's'
     let reuse = a:flags == 'u'
 
     if filereadable(path)
         call s:open(path, flags, wpos, 0, reuse)
-        execute 'normal ' . cpos.line . 'G' . cpos.column . '|'
+        call setpos('.', cpos)
     endif
 endfunction
 
-"function! ags#ViewFile(lineNo)
-"call ags#OpenFile(a:lineNo)
-"call ags#OpenBuffer(s:bufname)
-"endfunction
+" Clears the highlighted result pattern if any
+"
+function! ags#ClearHlResult()
+    if empty(s:hlpos) | return | endif
 
-function! ags#ClearResultsOn()
-    if empty(s:lastPosOn) | return | endif
+    let lineNo  = s:hlpos[1]
+    let lastNo  = line('$')
+    let s:hlpos = []
 
-    let l:lineNo    = s:lastPosOn[1]
-    let l:lastNo    = line('$')
-    let s:lastPosOn = []
+    if lineNo < 0 || lineNo > lastNo | return | endif
 
-    if l:lineNo < 0 || l:lineNo > l:lastNo | return | endif
+    let pos  = getpos('.')
+    let expr = s:pat(':\resultStart::\hlDelim:\(.\{-}\):\hlDelim::\end:')
+    let repl = s:pat(':resultStart:\1:end:')
+    let cmd  = 'silent ' . lineNo . 's/\m' . expr . '/' . repl . '/ge'
 
-    let l:pos  = getpos('.')
-    let l:src  = s:patStResEsc . s:patOnDelimEsc . '\(.\{-}\)' . s:patOnDelimEsc . s:patEnEsc
-    let l:repl = s:patStRes . '\1' . s:patEn
-    let l:cmd  = 'silent ' . l:lineNo . 's/\m' . l:src . '/' . l:repl . '/ge'
-
-    call ags#Execute(l:cmd)
-    call setpos('.', l:pos)
+    call s:execw(cmd)
+    call setpos('.', pos)
 endfunction
 
-function! ags#NavigateResults(...)
-    call ags#ClearResultsOn()
-
-    let l:flags = a:0 > 0 ? a:1 : 'w'
-    call search(s:patStRes . '.\{-}' . s:patEn, l:flags)
-    "execute 'normal zz'
-
-    let l:pos = getpos('.')
-    let l:lineNo = line('.')
-    let l:columnNo = col('.')
-
-    let l:line = getline('.')
-    let l:src  = s:patStResEsc . '\(.\{-}\)' . s:patEnEsc
-    let l:repl = s:patStRes . s:patOnDelim . '\1' . s:patOnDelim . s:patEn
-    let l:cmd  = 'silent ' . l:lineNo . 's/\m\%' . l:columnNo . 'c' . l:src . '/' . l:repl . '/e'
-
-    call ags#Execute(l:cmd)
-    call setpos('.', l:pos)
-
-    let s:lastPosOn = l:pos
-endfunction
-
-function! ags#HighlightResult()
-    let l:line = getline('.')
-    let l:result = s:patStRes . '.\{-}' . s:patEn
-    if l:line =~ l:result
+" Navigates the next result pattern on the same line
+"
+function! ags#NavigateResultsOnLine()
+    let line = getline('.')
+    let result = s:pat(':resultStart:.\{-}:end:')
+    if line =~ result
         let [bufnum, lnum, col, off] = getpos('.')
         call setpos('.', [bufnum, lnum, 0, off])
         call ags#NavigateResults()
     endif
 endfunction
 
+" Navigates the search results patterns
+"
+" {flags} search flags (b, B, w, W)
+function! ags#NavigateResults(...)
+    call ags#ClearHlResult()
+
+    let flags = a:0 > 0 ? a:1 : 'w'
+    call search(s:pat(':resultStart:.\{-}:end:'), flags)
+
+    let pos  = getpos('.')
+    let line = getline('.')
+    let row  = pos[1]
+    let col  = pos[2]
+
+    let expr = s:pat(':\resultStart:\(.\{-}\):\end:')
+    let repl = s:pat(':resultStart::hlDelim:\1:hlDelim::end:')
+    let cmd  = 'silent ' . row . 's/\m\%' . col . 'c' . expr . '/' . repl . '/e'
+
+    call s:execw(cmd)
+    call setpos('.', pos)
+
+    let s:hlpos = pos
+endfunction
+
+" Navigates the search results file paths
+"
+" {flags} search flags (b, B, w, W)
 function! ags#NavigateResultsFiles(...)
-    call ags#ClearResultsOn()
-    let l:flags = a:0 > 0 ? a:1 : 'w'
-    call search(s:patFile, l:flags)
+    call ags#ClearHlResult()
+    let flags = a:0 > 0 ? a:1 : 'w'
+    let file = s:pat(':file:')
+    call search(file, l:flags)
     execute 'normal zt'
+endfunction
+
+function! ags#Quit()
+    call s:close(s:bufname)
+endfunction
+
+function! ags#Usage()
+    for l:u in s:usage | echom l:u | endfor
 endfunction
