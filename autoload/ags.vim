@@ -1,11 +1,6 @@
-" The search results buffer name
-let s:bufname = 'search-results.agsv'
 
 " The position of the last highlighted search pattern
 let s:hlpos = []
-
-" The last window where a file from search results was opened
-let s:lastWin = 0
 
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
@@ -54,18 +49,6 @@ let s:usage = [
             \ ' ---------------------------'
             \ ]
 
-" Open buffer commands
-let s:ocmd = {
-            \ 'top'       : 'to',
-            \ 'bottom'    : 'bo',
-            \ 'above'     : 'abo',
-            \ 'below'     : 'bel',
-            \ 'far-left'  : 'vert to',
-            \ 'far-right' : 'vert bo',
-            \ 'left'      : 'vert abo',
-            \ 'right'     : 'vert bel'
-            \ }
-
 " Window position flags
 let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
@@ -81,66 +64,6 @@ function! s:run(args)
     endfor
 
     return system(cmd . ' ' . args)
-endfunction
-
-" Opens a window
-"
-" {name}    the buffer name or file path
-" {cmd}     one of the commands from s:ocmd
-" {sameWin} true to open in the current window
-" {preview} true to keep focus with the current window
-" {lastWin} true to reuse last window opened
-"
-function! s:open(name, cmd, ...)
-    let sameWin = a:0 && a:1
-    let preview = a:0 > 1 && a:2
-    let lastWin = a:0 > 2 && a:3
-    let cmd     = s:ocmd[a:cmd]
-
-    if lastWin && s:lastWin
-        execute s:lastWin . 'wincmd w'
-        let sameWin = 1
-    elseif lastWin
-        let cmd = s:ocmd.above
-        let sameWin = 0
-    endif
-
-    let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
-    let wincmd = sameWin ? 'edit '   : cmd . ' new '
-
-    if bufexists(a:name)
-        let nr = bufwinnr(a:name)
-        if nr == -1
-            execute bufcmd . bufnr(a:name)
-        else
-            execute nr . 'wincmd w'
-        endif
-    else
-        execute wincmd . a:name
-    endif
-
-    if a:name != s:bufname
-        let s:lastWin = winnr()
-    endif
-
-    if preview
-        execute 'wincmd p'
-    endif
-endfunction
-
-" Closes the buffer with {name}
-"
-function! s:close(name)
-    if bufexists(a:name)
-        let nr = bufnr(a:name)
-        if nr > -1
-            execute 'bw ' . nr
-        endif
-    endif
-endfunction
-
-function! s:openResultsBuffer()
-    call s:open(s:bufname, 'bottom')
 endfunction
 
 function! s:modifyOn()
@@ -165,7 +88,7 @@ endfunction
 function! s:showResults(lines, ...)
     let add = a:0 && a:1
 
-    call s:openResultsBuffer()
+    call ags#buf#OpenResultsBuffer()
     call s:modifyOn()
 
     if add
@@ -272,17 +195,22 @@ endfunction
 " {flags|r} opens the file to the right of the search results window
 " {flags|l} opens the file to the left of the search results window
 " {flags|u} opens the file to in a previously opened window
+" {preview} set to true to keep focus in the search results window
 "
-function! ags#OpenFile(lineNo, flags)
-    let path  = fnameescape(ags#FilePath(a:lineNo))
-    let cpos  = s:resultPosition(a:lineNo)
-    let flags = has_key(s:wflags, a:flags) ? s:wflags[a:flags] : 'above'
-    let wpos  = a:flags == 's'
-    let reuse = a:flags == 'u'
+function! ags#OpenFile(lineNo, flags, ...)
+    let path    = fnameescape(ags#FilePath(a:lineNo))
+    let pos    = s:resultPosition(a:lineNo)
+    let flags   = has_key(s:wflags, a:flags) ? s:wflags[a:flags] : 'above'
+    let wpos    = a:flags == 's'
+    let reuse   = a:flags == 'u'
+    let preview = a:0 && a:1
 
     if filereadable(path)
-        call s:open(path, flags, wpos, 0, reuse)
-        call setpos('.', cpos)
+        call ags#buf#OpenBuffer(path, flags, wpos, preview, reuse)
+
+        if !preview
+            call setpos('.', pos)
+        endif
     endif
 endfunction
 
@@ -355,7 +283,7 @@ function! ags#NavigateResultsFiles(...)
 endfunction
 
 function! ags#Quit()
-    call s:close(s:bufname)
+    call ags#buf#CloseResultsBuffer()
 endfunction
 
 function! ags#Usage()
