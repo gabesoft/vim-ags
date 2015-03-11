@@ -1,6 +1,7 @@
 let s:bufname   = 'search-results.agsv'
 let s:lastPosOn = []
 let s:lastWin   = 0
+let s:pat       = function('ags#pat#mkpat')
 
 " TODO: put these in a dict or maybe make an object
 let s:patEn          = '[0m[K'
@@ -141,6 +142,19 @@ function! s:open(name, cmd, ...)
     endif
 endfunction
 
+function! s:close(name)
+  if bufexists(a:name)
+    let nr = bufnr(a:name)
+    if nr > -1
+      execute 'bw ' . nr
+    endif
+  endif
+endfunction
+
+function! ags#Quit()
+  call s:close(s:bufname)
+endfunction
+
 function! s:openResultsBuffer()
     call s:open(s:bufname, 'bottom')
 endfunction
@@ -168,24 +182,34 @@ function! ShowResults(lines)
     execute 'normal gg'
 endfunction
 
+" Prepares the search data for display
+"
+" @param data - raw search results
 function! ags#Process(data)
-    let l:data       = substitute(a:data, '\e', '', 'g')
-    let l:lines      = split(l:data, '\n')
-    let l:maxw       = 0
-    let l:lineNumPat = '^' . s:patStLineNo . '\(\d\{1,}\)'
+    let data    = substitute(a:data, '\e', '', 'g')
+    let lines   = split(data, '\n')
+    let lmaxlen = 0
+    let lineNo  = s:pat('^', 'lineStart', '\(\d\{1,}\)')
 
-    for l:line in l:lines
-        let l:str  = matchstr(l:line, l:lineNumPat)
-        let l:maxw = max([ strlen(l:str), l:maxw ])
+    for l in lines
+        let lmatch  = matchstr(l, lineNo)
+        let lmaxlen = max([ strlen(lmatch), lmaxlen ])
     endfor
 
-    let l:result = []
-    for l:line in l:lines
-        let l:len   = strlen(matchstr(l:line, l:lineNumPat))
-        let l:wslen = l:maxw - l:len
-        let l:line  = substitute(l:line, l:lineNumPat, s:patStLineNo . repeat(' ', l:wslen) . '\1', '')
-        let l:line  = substitute(l:line, '^\(.\{-}' . s:patEnLineNo . '\)\(.\{1,}$\)\@=', '\1 ', '')
-        let l:line  = substitute(l:line, '^\(.\{-}' . s:patEnColNo . '\)', '\1 ', '')
+    let result = []
+    for line in lines
+        let llen = strlen(matchstr(line, lineNo))
+        let wlen = lmaxlen - llen
+
+        " right justify line numbers
+        let line = substitute(line, lineNo, s:pat('lineStart', repeat(' ', wlen), '\1'), '')
+
+        " add a space between line number and start of text
+        let line = substitute(line, s:pat('^\(.\{-}', 'lineEnd', '\)\(.\{1,}$\)\@='), '\1 ', '')
+
+        " add a space between line and column number and start of text
+        let line = substitute(line, s:pat('^\(.\{-}', 'endCol', '\)'), '\1 ', '')
+
         call add(l:result, l:line)
     endfor
 
@@ -206,7 +230,7 @@ function! ags#FilePath(lineNo)
         let l:no = l:no - 1
     endw
 
-    return substitute(getline(l:no), '^' . s:patStFile . '\(.\{-}\)' . s:patEn, '\1', '')
+    return substitute(getline(l:no), '^' . s:patStFile . '\(.\{-}\)' . s:pat('end'), '\1', '')
 endfunction
 
 function! ags#ResultPosition(lineNo)

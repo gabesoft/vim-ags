@@ -18,6 +18,7 @@ command! -buffer AgsOpenFileLeft call ags#OpenFile(line('.'), 'l')
 command! -buffer AgsOpenFileRight call ags#OpenFile(line('.'), 'r')
 command! -buffer AgsOpenFileSame call ags#OpenFile(line('.'), 's')
 command! -buffer AgsOpenFileReuse call ags#OpenFile(line('.'), 'u')
+command! -buffer AgsQuit call ags#Quit()
 
 nnoremap <buffer> r :AgsNextResult<CR>
 nnoremap <buffer> R :AgsPrevResult<CR>
@@ -27,7 +28,7 @@ nnoremap <buffer> a :AgsFilePath<CR>
 "nnoremap <buffer> a :AgsFilePathShow<CR>
 "nnoremap <buffer> a :AgsFilePathCopy<CR>
 nnoremap <buffer> u :AgsUsage<CR>
-"nnoremap <buffer> q :AgsQuit<CR>
+nnoremap <buffer> q :AgsQuit<CR>
 
 nnoremap <buffer> oa      : AgsOpenFileAbove<CR>
 nnoremap <buffer> ob      : AgsOpenFileBelow<CR>
