@@ -4,4 +4,5 @@
 "       write doc
 "       maybe add param to add to results instead of replace
 
-command! -nargs=* -complete=file Ags call ags#Search(<q-args>)
+command! -nargs=* -complete=file Ags call ags#Search(<q-args>, 0)
+command! -nargs=* -complete=file AgsAdd call ags#Search(<q-args>, 1)

@@ -152,21 +152,21 @@ function! s:execw(...)
     call s:modifyOff()
 endfunction
 
-function! s:showResults(lines)
-    let append = a:0 && a:1
+function! s:showResults(lines, ...)
+    let add = a:0 && a:1
+
     call s:openResultsBuffer()
     call s:modifyOn()
 
-    if !append
+    if add
+        call append('$', a:lines)
+    else
         execute '%delete'
-    endif
-
-    call append(0, a:lines)
-    call s:modifyOff()
-
-    if !append
+        call append(0, a:lines)
         execute 'normal gg'
     endif
+
+    call s:modifyOff()
 endfunction
 
 " Prepares the search data for display
@@ -225,11 +225,11 @@ function! s:resultPosition(lineNo)
     return [0, row, col, 0]
 endfunction
 
-function! ags#Search(args)
+function! ags#Search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
     let lines = s:process(data)
-    call s:showResults(lines)
+    call s:showResults(lines, a:add)
 endfunction
 
 function! ags#FilePath(lineNo)
