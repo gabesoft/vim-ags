@@ -1,21 +1,21 @@
-" search results buffer name
+" The search results buffer name
 let s:bufname = 'search-results.agsv'
 
-" the position of the last highlighted search pattern
+" The position of the last highlighted search pattern
 let s:hlpos = []
 
-" last window where a file from search results was opened
+" The last window where a file from search results was opened
 let s:lastWin = 0
 
-" regex pattern functions
+" Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
 let s:subg = function('ags#pat#subg')
 let s:sub  = function('ags#pat#sub')
 
-" ag executable
+" Ag executable
 let s:exe = '/usr/local/bin/ag'
 
-" default arguments
+" Predefined search arguments
 let s:args = {
             \ 'heading'           : '',
             \ 'filename'          : '',
@@ -30,6 +30,7 @@ let s:args = {
             \ 'color-path'        : '="1;31"'
             \ }
 
+" Search results usage
 let s:usage = [
             \ ' Search Results Key Bindings',
             \ ' ---------------------------',
@@ -53,7 +54,8 @@ let s:usage = [
             \ ' ---------------------------'
             \ ]
 
-let s:cmd = {
+" Open buffer commands
+let s:ocmd = {
             \ 'top'       : 'to',
             \ 'bottom'    : 'bo',
             \ 'above'     : 'abo',
@@ -64,9 +66,11 @@ let s:cmd = {
             \ 'right'     : 'vert bel'
             \ }
 
-" window position flags
+" Window position flags
 let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
+" Runs a search with the given {args}
+"
 function! s:run(args)
     let cmd  = s:exe . ' '
     let args = a:args
@@ -82,26 +86,27 @@ endfunction
 " Opens a window
 "
 " {name}    the buffer name or file path
-" {cmd}     one of the commands from s:cmd
+" {cmd}     one of the commands from s:ocmd
 " {sameWin} true to open in the current window
 " {preview} true to keep focus with the current window
 " {lastWin} true to reuse last window opened
+"
 function! s:open(name, cmd, ...)
     let sameWin = a:0 && a:1
     let preview = a:0 > 1 && a:2
     let lastWin = a:0 > 2 && a:3
-    let cmd     = s:cmd[a:cmd]
+    let cmd     = s:ocmd[a:cmd]
 
     if lastWin && s:lastWin
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
     elseif lastWin
-        let cmd = s:cmd.above
+        let cmd = s:ocmd.above
         let sameWin = 0
     endif
 
     let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
-    let wincmd = sameWin ? 'edit ' : cmd . ' new '
+    let wincmd = sameWin ? 'edit '   : cmd . ' new '
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
@@ -123,6 +128,8 @@ function! s:open(name, cmd, ...)
     endif
 endfunction
 
+" Closes the buffer with {name}
+"
 function! s:close(name)
     if bufexists(a:name)
         let nr = bufnr(a:name)
@@ -148,10 +155,13 @@ endfunction
 "
 function! s:execw(...)
     call s:modifyOn()
-    for l:cmd in a:000 | execute l:cmd | endfor
+    for cmd in a:000 | execute cmd | endfor
     call s:modifyOff()
 endfunction
 
+" Displays the search results from {lines} in the
+" search results window
+"
 function! s:showResults(lines, ...)
     let add = a:0 && a:1
 
@@ -172,18 +182,19 @@ endfunction
 " Prepares the search data for display
 "
 " {data} raw search results
+"
 function! s:process(data)
     let data    = substitute(a:data, '\e', '', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 0
     let lineNo  = s:pat('^:lineStart:\(\d\{1,}\)')
 
-    for l in lines
-        let lmatch  = matchstr(l, lineNo)
+    for line in lines
+        let lmatch  = matchstr(line, lineNo)
         let lmaxlen = max([ strlen(lmatch), lmaxlen ])
     endfor
 
-    let result = []
+    let results = []
     for line in lines
         let llen = strlen(matchstr(line, lineNo))
         let wlen = lmaxlen - llen
@@ -197,16 +208,18 @@ function! s:process(data)
         " add a space between line and column number and start of text
         let line = s:sub(line, '^\(.\{-}:lineColEnd:\)', '\1 ')
 
-        call add(l:result, l:line)
+        call add(results, line)
     endfor
 
-    return l:result
+    return results
 endfunction
 
+" Returns the cursor position when opening a file
+" from the {lineNo} in the search results window
+"
 function! s:resultPosition(lineNo)
     let line = getline(a:lineNo)
     let col  = 0
-    let row  = 0
 
     if line =~ s:pat(':file:')
         let line = getline(a:lineNo + 1)
@@ -225,6 +238,10 @@ function! s:resultPosition(lineNo)
     return [0, row, col, 0]
 endfunction
 
+" Performs a search with the specified {args}. If {add} is true
+" the results will be added to the search results window; otherwise,
+" they will replace any previous results.
+"
 function! ags#Search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
@@ -232,6 +249,9 @@ function! ags#Search(args, add)
     call s:showResults(lines, a:add)
 endfunction
 
+" Returns the file path for the search results
+" relative to the {lineNo}
+"
 function! ags#FilePath(lineNo)
     let nr = a:lineNo
 
@@ -252,6 +272,7 @@ endfunction
 " {flags|r} opens the file to the right of the search results window
 " {flags|l} opens the file to the left of the search results window
 " {flags|u} opens the file to in a previously opened window
+"
 function! ags#OpenFile(lineNo, flags)
     let path  = fnameescape(ags#FilePath(a:lineNo))
     let cpos  = s:resultPosition(a:lineNo)
@@ -300,6 +321,7 @@ endfunction
 " Navigates the search results patterns
 "
 " {flags} search flags (b, B, w, W)
+"
 function! ags#NavigateResults(...)
     call ags#ClearHlResult()
 
@@ -328,7 +350,7 @@ function! ags#NavigateResultsFiles(...)
     call ags#ClearHlResult()
     let flags = a:0 > 0 ? a:1 : 'w'
     let file = s:pat(':file:')
-    call search(file, l:flags)
+    call search(file, flags)
     execute 'normal zt'
 endfunction
 
@@ -337,5 +359,5 @@ function! ags#Quit()
 endfunction
 
 function! ags#Usage()
-    for l:u in s:usage | echom l:u | endfor
+    for u in s:usage | echom u | endfor
 endfunction

@@ -3,7 +3,7 @@
 "   - line number
 "   - column number
 "   - search result
-"   - search result highlighted (cursor on)
+"   - search result highlighted
 
 let s:end         = '[0m[K'
 let s:col         = ':\d\{-1,}:'
@@ -23,7 +23,7 @@ function! s:val(name)
     return has_key(s:, a:name) ? s:[a:name] : a:name
 endfunction
 
-function! s:valEsc(name) 
+function! s:valEsc(name)
     return has_key(s:, a:name) ? s:esc(s:[a:name]) : a:name
 endfunction
 
