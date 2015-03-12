@@ -24,11 +24,13 @@ let s:usage = [
             \ ' r - navigate results forward',
             \ ' R - navigate results backwards',
             \ ' a - display the file path for current results',
-            \ ' c - copy to clipboard the file path for current results',
+            \ ' c - copy the file path for current results',
             \ ' q - close the search results window',
             \ ' u - usage',
             \ ' ',
             \ ' Open Window Commands',
+            \ '    - to maintain the focus in the search results window use',
+            \ '      the uppercase variant of the mappings below',
             \ ' oa - open file above the results window',
             \ ' ob - open file below the results window',
             \ ' ol - open file to the left of the results window',
@@ -71,7 +73,7 @@ function! s:show(lines, ...)
         endif
     endfunction
 
-    call ags#buf#OpenResultsBuffer()
+    call ags#buf#openResultsBuffer()
     call s:execw(obj)
 endfunction
 
@@ -136,7 +138,7 @@ endfunction
 " the results will be added to the search results window; otherwise,
 " they will replace any previous results.
 "
-function! ags#Search(args, add)
+function! ags#search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
     let lines = s:process(data)
@@ -146,7 +148,7 @@ endfunction
 " Returns the file path for the search results
 " relative to {lineNo}
 "
-function! ags#FilePath(lineNo)
+function! ags#filePath(lineNo)
     let nr = a:lineNo
 
     while nr >= 0 && getline(nr) !~ s:pat(':file:')
@@ -167,8 +169,8 @@ endfunction
 " Copies to clipboard the file path for the search results
 " relative to {lineNo}
 "
-function! ags#CopyFilePath(lineNo, fullPath)
-    let file = ags#FilePath(a:lineNo)
+function! ags#copyFilePath(lineNo, fullPath)
+    let file = ags#filePath(a:lineNo)
     let file = a:fullPath ? fnamemodify(file, ':p') : file
     call s:setYanked(file)
     return 'Copied ' . file
@@ -176,7 +178,7 @@ endfunction
 
 " Removes any delimiters from the yanked text
 "
-function! ags#CleanYankedText()
+function! ags#cleanYankedText()
     if empty(@0) || @0 == s:lastCopy | return | endif
 
     let s:lastCopy = @0
@@ -203,18 +205,19 @@ endfunction
 " {flags|u} opens the file to in a previously opened window
 " {preview} set to true to keep focus in the search results window
 "
-function! ags#OpenFile(lineNo, flags, preview)
-    let path  = fnameescape(ags#FilePath(a:lineNo))
+function! ags#openFile(lineNo, flags, preview)
+    let path  = fnameescape(ags#filePath(a:lineNo))
     let pos   = s:resultPosition(a:lineNo)
     let flags = has_key(s:wflags, a:flags) ? s:wflags[a:flags] : 'above'
     let wpos  = a:flags == 's'
     let reuse = a:flags == 'u'
 
     if filereadable(path)
-        call ags#buf#OpenBuffer(path, flags, wpos, reuse)
+        call ags#buf#openBuffer(path, flags, wpos, reuse)
         call setpos('.', pos)
 
         if a:preview
+            execute 'normal zz'
             execute 'wincmd p'
         endif
     endif
@@ -222,7 +225,7 @@ endfunction
 
 " Clears the highlighted result pattern if any
 "
-function! ags#ClearHlResult()
+function! ags#clearHlResult()
     if empty(s:hlpos) | return | endif
 
     let lineNo  = s:hlpos[1]
@@ -242,13 +245,13 @@ endfunction
 
 " Navigates the next result pattern on the same line
 "
-function! ags#NavigateResultsOnLine()
+function! ags#navigateResultsOnLine()
     let line = getline('.')
     let result = s:pat(':resultStart:.\{-}:end:')
     if line =~ result
         let [bufnum, lnum, col, off] = getpos('.')
         call setpos('.', [bufnum, lnum, 0, off])
-        call ags#NavigateResults()
+        call ags#navigateResults()
     endif
 endfunction
 
@@ -256,8 +259,8 @@ endfunction
 "
 " {flags} search flags (b, B, w, W)
 "
-function! ags#NavigateResults(...)
-    call ags#ClearHlResult()
+function! ags#navigateResults(...)
+    call ags#clearHlResult()
 
     let flags = a:0 > 0 ? a:1 : 'w'
     call search(s:pat(':resultStart:.\{-}:end:'), flags)
@@ -280,18 +283,18 @@ endfunction
 " Navigates the search results file paths
 "
 " {flags} search flags (b, B, w, W)
-function! ags#NavigateResultsFiles(...)
-    call ags#ClearHlResult()
+function! ags#navigateResultsFiles(...)
+    call ags#clearHlResult()
     let flags = a:0 > 0 ? a:1 : 'w'
     let file = s:pat(':file:')
     call search(file, flags)
     execute 'normal zt'
 endfunction
 
-function! ags#Quit()
-    call ags#buf#CloseResultsBuffer()
+function! ags#quit()
+    call ags#buf#closeResultsBuffer()
 endfunction
 
-function! ags#Usage()
+function! ags#usage()
     for u in s:usage | echom u | endfor
 endfunction

@@ -28,7 +28,7 @@ function! s:open(name, cmd, sameWin, lastWin)
     let sameWin = a:sameWin
     let lastWin = a:lastWin
 
-    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:bufname)
+    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:bufname) && s:lastWin <= winnr('$')
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
     elseif lastWin
@@ -66,18 +66,18 @@ function! s:close(name)
     endif
 endfunction
 
-function! ags#buf#OpenBuffer(name, cmd, sameWin, lastWin)
+function! ags#buf#openBuffer(name, cmd, sameWin, lastWin)
     call s:open(a:name, a:cmd, a:sameWin, a:lastWin)
 endfunction
 
 " Opens the search results buffer
 "
-function! ags#buf#OpenResultsBuffer()
+function! ags#buf#openResultsBuffer()
     call s:open(s:bufname, 'bottom', 0, 0)
 endfunction
 
 " Closes the search results buffer
 "
-function! ags#buf#CloseResultsBuffer()
+function! ags#buf#closeResultsBuffer()
     call s:close(s:bufname)
 endfunction

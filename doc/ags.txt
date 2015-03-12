@@ -33,7 +33,8 @@ OPTIONS                                   *ags-options*
 |loaded_ags|...................Disable the plugin
 |ags_agexe|....................The ag executable path
 |ags_agmaxcount|...............The --max-count ag param
-|ags_agcontext|................Tthe --context ag param
+|ags_agcontext|................The --context ag param
+|ags_agargs|...................The predefined ag args
 
 ------------------------------------------------------- 
 Detailed options:~
@@ -51,6 +52,26 @@ This is the max-count parameter to be passed to ag >
                                         *ags_agcontext*
 This is the context parameter to be passed to ag >
     let g:ags_agcontext = 3
+<
+
+                                           *ags_agargs*
+This variable contains the predefined search arguments
+used to ensure that the search results are highlighted
+properly in Vim. >
+    let g:ags_agargs = {
+                \ '--break'             : [ '', '' ],
+                \ '--color'             : [ '', '' ],
+                \ '--color-line-number' : [ '"1;30"', '' ],
+                \ '--color-match'       : [ '"32;40"', '' ],
+                \ '--color-path'        : [ '"1;31"', '' ],
+                \ '--column'            : [ '', '' ],
+                \ '--context'           : [ 'g:ags_agcontext', '-C', '3' ],
+                \ '--filename'          : [ '', '' ],
+                \ '--group'             : [ '', '' ],
+                \ '--heading'           : [ '', '-H' ],
+                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m', '200' ],
+                \ '--numbers'           : [ '', '' ]
+                \ }
 <
 
 ======================================================= 
@@ -82,22 +103,23 @@ MAPPINGS                                 *ags-mappings*
 
 Once inside the search results window:~
 
-    p       - navigate file paths forward
-    P       - navigate files paths backwards
-    r       - navigate results forward
-    R       - navigate results backwards
-    a       - display the file path for current results
-    c       - copy to clipboard the file path for current results
-    oa      - open file above the results window
-    ob      - open file below the results window
-    ol      - open file to the left of the results window
-    or      - open file to the right of the results window
-    os      - open file in the results window
-    ou      - open file in a previously opened window
-    <enter> - open file in a previously opened window
-    q       - close the search results window
-    u       - displays these key mappings
+    p    - navigate file paths forward
+    P    - navigate files paths backwards
+    r    - navigate results forward
+    R    - navigate results backwards
+    a    - display the file path for current results
+    c    - copy to clipboard the file path for current results
+
+    oa   - open file above the results window
+    ob   - open file below the results window
+    ol   - open file to the left of the results window
+    or   - open file to the right of the results window
+    os   - open file in the results window
+    ou   - open file in a previously opened window
+    <CR> - open file in a previously opened window
+
+    q    - close the search results window
+    u    - displays these key mappings
 
 =======================================================
-vim:ft=help:et:ts=2:sw=2:sts=2:norl
-
+vim:ft=help:et
