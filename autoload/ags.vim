@@ -40,19 +40,10 @@ let s:usage = [
 " Window position flags
 let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
-function! s:modifyOn()
-    execute 'setlocal modifiable'
-endfunction
-
-function! s:modifyOff()
-    execute 'setlocal nomodifiable'
-endfunction
-
 " Executes a write command
 "
 function! s:execw(...)
-    call s:modifyOn()
-    "for cmd in a:000 | execute cmd | endfor
+    execute 'setlocal modifiable'
     for cmd in a:000
         if type(cmd) == type({})
             call cmd.run()
@@ -60,23 +51,13 @@ function! s:execw(...)
             execute cmd
         endif
     endfor
-    call s:modifyOff()
-endfunction
-
-function! s:appendLines(lines, add)
-    if a:add
-        call append('$', a:lines)
-    else
-        execute '%delete'
-        call append(0, a:lines)
-        execute 'normal gg'
-    endif
+    execute 'setlocal nomodifiable'
 endfunction
 
 " Displays the search results from {lines} in the
 " search results window
 "
-function! s:showResults(lines, ...)
+function! s:show(lines, ...)
     let obj = { 'add': a:0 && a:1, 'lines': a:lines }
 
     function obj.run()
@@ -93,9 +74,7 @@ function! s:showResults(lines, ...)
     call s:execw(obj)
 endfunction
 
-" Prepares the search data for display
-"
-" {data} raw search results
+" Prepares the search {data} for display
 "
 function! s:process(data)
     let data    = substitute(a:data, '\e', '', 'g')
@@ -160,7 +139,7 @@ function! ags#Search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
     let lines = s:process(data)
-    call s:showResults(lines, a:add)
+    call s:show(lines, a:add)
 endfunction
 
 " Returns the file path for the search results
@@ -176,6 +155,8 @@ function! ags#FilePath(lineNo)
     return s:sub(getline(nr), '^:file:', '\1')
 endfunction
 
+" Sets the {text} into the copy registers
+"
 function! s:setYanked(text)
     let @+ = a:text
     let @* = a:text
@@ -184,6 +165,7 @@ endfunction
 
 " Copies to clipboard the file path for the search results
 " relative to {lineNo}
+"
 function! ags#CopyFilePath(lineNo, fullPath)
     let file = ags#FilePath(a:lineNo)
     let file = a:fullPath ? fnamemodify(file, ':p') : file
@@ -194,20 +176,18 @@ endfunction
 " Removes any delimiters from the yanked text
 "
 function! ags#CleanYankedText()
-    if empty(@0) || @0 == s:lastCopy
-        return
-    endif
+    if empty(@0) || @0 == s:lastCopy | return | endif
 
-    let curr = @0
-    let s:lastCopy = curr
+    let s:lastCopy = @0
 
-    let clean = s:subg(curr,  ':file:', '\1')
-    let clean = s:subg(clean, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
-    let clean = s:subg(clean, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
-    let clean = s:subg(clean, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
-    let clean = s:subg(clean, ':resultStart:\(.\{-1,}\):end:', '\1')
+    let text = @0
+    let text = s:subg(text,  ':file:', '\1')
+    let text = s:subg(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
+    let text = s:subg(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
+    let text = s:subg(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
+    let text = s:subg(text, ':resultStart:\(.\{-1,}\):end:', '\1')
 
-    call s:setYanked(clean)
+    call s:setYanked(text)
 endfunction
 
 " Opens a results file
