@@ -17,5 +17,13 @@ _____     ____  ______
 ### Usage
 See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt)  
 
-### Notes:  
+### Notes  
 Works with ag version >= 0.29.1  
+
+### Screenshots  
+Here are a couple of screenshots of the search results window
+
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot1.png" />
+
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot2.png" />
+
