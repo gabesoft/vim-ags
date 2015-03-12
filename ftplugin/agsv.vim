@@ -10,6 +10,7 @@ command! -buffer AgsNextFile call ags#NavigateResultsFiles('W')
 command! -buffer AgsPrevFile call ags#NavigateResultsFiles('bW')
 
 command! -buffer AgsFilePathShow echom ags#FilePath(line('.'))
+command! -buffer AgsFilePathCopy echom ags#CopyFilePath(line('.'), 1)
 command! -buffer AgsUsage call ags#Usage()
 
 command! -buffer AgsOpenFileAbove call ags#OpenFile(line('.'), 'a', 0)
@@ -33,6 +34,7 @@ nnoremap <buffer> R :AgsPrevResult<CR>
 nnoremap <buffer> p :AgsNextFile<CR>
 nnoremap <buffer> P :AgsPrevFile<CR>
 nnoremap <buffer> a :AgsFilePathShow<CR>
+nnoremap <buffer> c :AgsFilePathCopy<CR>
 nnoremap <buffer> u :AgsUsage<CR>
 nnoremap <buffer> q :AgsQuit<CR>
 
