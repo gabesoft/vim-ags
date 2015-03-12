@@ -27,3 +27,5 @@ Here are a couple of screenshots of the search results window
 
 <img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot2.png" />
 
+### Similar Plugins
+[ag.vim](https://github.com/rking/ag.vim)

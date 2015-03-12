@@ -6,6 +6,7 @@ ags-intro	ags.txt	/*ags-intro*
 ags-mappings	ags.txt	/*ags-mappings*
 ags-options	ags.txt	/*ags-options*
 ags.txt	ags.txt	/*ags.txt*
+ags_agargs	ags.txt	/*ags_agargs*
 ags_agcontext	ags.txt	/*ags_agcontext*
 ags_agexe	ags.txt	/*ags_agexe*
 ags_agmaxcount	ags.txt	/*ags_agmaxcount*
