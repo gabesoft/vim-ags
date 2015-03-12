@@ -16,21 +16,19 @@ let s:cmd = {
             \ 'right'     : 'vert bel'
             \ }
 
-" Opens a window
+" Opens a window for the buffer with {name} positioned according to {cmd}
 "
 " {name}    the buffer name or file path
 " {cmd}     one of the commands from s:cmd
 " {sameWin} true to open in the current window
-" {preview} true to keep focus with the current window
 " {lastWin} true to reuse last window opened
 "
-function! s:open(name, cmd, sameWin, preview, lastWin)
+function! s:open(name, cmd, sameWin, lastWin)
     let cmd     = s:cmd[a:cmd]
     let sameWin = a:sameWin
-    let preview = a:preview
     let lastWin = a:lastWin
 
-    if lastWin && s:lastWin
+    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:bufname)
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
     elseif lastWin
@@ -55,10 +53,6 @@ function! s:open(name, cmd, sameWin, preview, lastWin)
     if a:name != s:bufname
         let s:lastWin = winnr()
     endif
-
-    if preview
-        execute 'wincmd p'
-    endif
 endfunction
 
 " Closes the buffer with {name}
@@ -72,17 +66,14 @@ function! s:close(name)
     endif
 endfunction
 
-function! ags#buf#OpenBuffer(name, cmd, ...)
-    let sameWin = a:0 && a:1
-    let preview = a:0 > 1 && a:2
-    let lastWin = a:0 > 2 && a:3
-    call s:open(a:name, a:cmd, sameWin, preview, lastWin)
+function! ags#buf#OpenBuffer(name, cmd, sameWin, lastWin)
+    call s:open(a:name, a:cmd, a:sameWin, a:lastWin)
 endfunction
 
 " Opens the search results buffer
 "
 function! ags#buf#OpenResultsBuffer()
-    call s:open(s:bufname, 'bottom', 0, 0, 0)
+    call s:open(s:bufname, 'bottom', 0, 0)
 endfunction
 
 " Closes the search results buffer
