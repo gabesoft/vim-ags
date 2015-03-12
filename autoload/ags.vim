@@ -25,6 +25,7 @@ let s:usage = [
             \ ' R - navigate results backwards',
             \ ' a - display the file path for current results',
             \ ' c - copy to clipboard the file path for current results',
+            \ ' q - close the search results window',
             \ ' u - usage',
             \ ' ',
             \ ' Open Window Commands',

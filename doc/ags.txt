@@ -93,6 +93,7 @@ Once inside the search results window:~
     os      - open file in the results window
     ou      - open file in a previously opened window
     <enter> - open file in a previously opened window
+    q       - close the search results window
     u       - displays these key mappings
 
 =======================================================
