@@ -21,9 +21,11 @@ CONTENTS                                 *ags-contents*
 ======================================================= 
 INTRO                                       *ags-intro*
 
-Plugin that integrates the silver searcher (AG) into 
-Vim which focuses on clarity of display and ease of 
-navigation through the search results.
+Ags is a plugin that allows accessing the search 
+functionality of the silver searcher (AG) from Vim.
+It focuses on displaying the search results in a clear
+format and provides several key mappings for easy 
+navigation through them.
 
 ======================================================= 
 OPTIONS                                   *ags-options*
