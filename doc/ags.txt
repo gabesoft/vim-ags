@@ -46,7 +46,7 @@ This is the ag executable path >
 
                                        *ags_agmaxcount*
 This is the max-count parameter to be passed to ag >
-    let g:ags_agmaxcount = 200
+    let g:ags_agmaxcount = 2000
 <
 
                                         *ags_agcontext*
@@ -69,7 +69,7 @@ properly in Vim. >
                 \ '--filename'          : [ '', '' ],
                 \ '--group'             : [ '', '' ],
                 \ '--heading'           : [ '', '-H' ],
-                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m', '200' ],
+                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m', '2000' ],
                 \ '--numbers'           : [ '', '' ]
                 \ }
 <

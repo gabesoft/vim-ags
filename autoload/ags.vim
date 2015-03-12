@@ -160,10 +160,14 @@ endfunction
 
 " Sets the {text} into the copy registers
 "
-function! s:setYanked(text)
-    let @+ = a:text
-    let @* = a:text
-    let @@ = a:text
+function! s:copyText(text)
+    if &clipboard =~ '\<unnamed\>'
+        let @* = a:text
+    elseif &clipboard =~ '\<unnamedplus\>' && has('\<unnamedplus\>')
+        let @+ = a:text
+    else
+        let @@ = a:text
+    endif
 endfunction
 
 " Copies to clipboard the file path for the search results
@@ -172,7 +176,7 @@ endfunction
 function! ags#copyFilePath(lineNo, fullPath)
     let file = ags#filePath(a:lineNo)
     let file = a:fullPath ? fnamemodify(file, ':p') : file
-    call s:setYanked(file)
+    call s:copyText(file)
     return 'Copied ' . file
 endfunction
 
@@ -190,7 +194,7 @@ function! ags#cleanYankedText()
     let text = s:subg(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
     let text = s:subg(text, ':resultStart:\(.\{-1,}\):end:', '\1')
 
-    call s:setYanked(text)
+    call s:copyText(text)
 endfunction
 
 " Opens a results file
