@@ -45,13 +45,3 @@ nnoremap <buffer> or      : AgsOpenFileRight<CR>
 nnoremap <buffer> os      : AgsOpenFileSame<CR>
 nnoremap <buffer> ou      : AgsOpenFileReuse<CR>
 nnoremap <buffer> <Enter> : AgsOpenFileReuse<CR>
-
-" window commands
-" - open in new window (same for view but the focus stays in the results
-"   window
-"       - horizontal above
-"       - horizontal below
-"       - vertical right
-"       - vertical left
-" - open in the results window (replace)
-" - open in new window but reuse a previously opened window

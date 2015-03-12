@@ -1,0 +1,100 @@
+*ags.txt* Ag search plugin for Vim
+*Ags*
+                      
+=======================================================
+#                                                     #
+#               _____     ____  ______                #
+#              \__  \   / ___\/  ___/                 #
+#               / __ \_/ /_/  >___ \                  #
+#              (____  /\___  /____  >                 #
+#                   \//_____/     \/                  #
+#                                                     #
+======================================================= 
+
+CONTENTS                                 *ags-contents*
+
+    1. Intro.........................|ags-intro|
+    2. Options.......................|ags_options|
+    3. Commands......................|ags-commands|
+    4. Mappings......................|ags-mappings|
+
+======================================================= 
+INTRO                                       *ags-intro*
+
+Plugin that integrates the silver searcher (AG) into 
+Vim which focuses on clarity of display and ease of 
+navigation through the search results.
+
+======================================================= 
+OPTIONS                                   *ags-options*
+
+|loaded_ags|...................Disable the plugin
+|ags_agexe|....................The ag executable path
+|ags_agmaxcount|...............The --max-count ag param
+|ags_agcontext|................Tthe --context ag param
+
+------------------------------------------------------- 
+Detailed options:~
+
+                                            *ags_agexe*
+This is the ag executable path >
+    let g:ags_agexe = '/usr/local/bin/ag'
+<
+
+                                       *ags_agmaxcount*
+This is the max-count parameter to be passed to ag >
+    let g:ags_agmaxcount = 200
+<
+
+                                        *ags_agcontext*
+This is the context parameter to be passed to ag >
+    let g:ags_agcontext = 3
+<
+
+======================================================= 
+COMMANDS                                 *ags-commands*
+
+                                                  *Ags*
+:Ags [{file-type}] [{options}] {pattern} [{directory}]
+
+    Runs a recursive search in {directory} for 
+    {pattern}. If {pattern} is not specified it 
+    will be set to the word under cursor. The 
+    {directory} will default to the current directory.
+    {options} and {file-type} are passed directly to 
+    the ag executable, except for --max-count and
+    --context which should be specified via 
+    |g:ags_agmaxcount| and |g:ags_agcontext| and a few
+    other display related arguments such as
+    --color-line-number, --color-match, and 
+    --color-path which are set by the plugin for 
+    display purposes.
+
+:AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
+    
+    Like |:Ags| but the matches are appended to the
+    current search results.
+
+======================================================= 
+MAPPINGS                                 *ags-mappings*
+
+Once inside the search results window:~
+
+    p       - navigate file paths forward
+    P       - navigate files paths backwards
+    r       - navigate results forward
+    R       - navigate results backwards
+    a       - display the file path for current results
+    c       - copy to clipboard the file path for current results
+    oa      - open file above the results window
+    ob      - open file below the results window
+    ol      - open file to the left of the results window
+    or      - open file to the right of the results window
+    os      - open file in the results window
+    ou      - open file in a previously opened window
+    <enter> - open file in a previously opened window
+    u       - displays these key mappings
+
+=======================================================
+vim:ft=help:et:ts=2:sw=2:sts=2:norl
+
