@@ -7,15 +7,15 @@ _____     ____  ______
 ```
 
 # Silver searcher (AG) plugin for Vim
-* A Vim plugin for the [silver searcher](https://github.com/ggreer/the_silver_searcher) that focuses on clean display and  
-  easy navigation through the search results  
+*A Vim plugin for the [silver searcher](https://github.com/ggreer/the_silver_searcher) that focuses on clean display and  
+ easy navigation through the search results*  
 
 ### Installation   
-  [Pathogen](https://github.com/tpope/vim-pathogen), [Vundle](https://github.com/gmarik/vundle), or copy to the Vim directory  
-  [Ag](https://github.com/ggreer/the_silver_searcher) must be installed as well.  
+[Pathogen](https://github.com/tpope/vim-pathogen), [Vundle](https://github.com/gmarik/vundle), or copy to the Vim directory  
+[Ag](https://github.com/ggreer/the_silver_searcher) must be installed as well.  
 
 ### Usage
-  See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt)  
+See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt)  
 
 ### Notes:  
-  Works with ag version >= 0.29.1  
+Works with ag version >= 0.29.1  

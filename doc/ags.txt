@@ -54,7 +54,7 @@ This is the context parameter to be passed to ag >
 ======================================================= 
 COMMANDS                                 *ags-commands*
 
-                                                  *Ags*
+                                                 *:Ags*
 :Ags [{file-type}] [{options}] {pattern} [{directory}]
 
     Runs a recursive search in {directory} for 
@@ -64,7 +64,7 @@ COMMANDS                                 *ags-commands*
     {options} and {file-type} are passed directly to 
     the ag executable, except for --max-count and
     --context which should be specified via 
-    |g:ags_agmaxcount| and |g:ags_agcontext| and a few
+    |ags_agmaxcount| and |ags_agcontext| and a few
     other display related arguments such as
     --color-line-number, --color-match, and 
     --color-path which are set by the plugin for 
