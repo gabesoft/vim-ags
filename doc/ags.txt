@@ -93,6 +93,7 @@ COMMANDS                                 *ags-commands*
     --color-path which are set by the plugin for 
     display purposes.
 
+                                              *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
     
     Like |:Ags| but the matches are appended to the
