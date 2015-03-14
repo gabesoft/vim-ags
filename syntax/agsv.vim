@@ -1,8 +1,37 @@
-syntax region agsvFilePath matchgroup=agsvFilePathSyn start='\[1;31m' end='\[0m\[K' oneline concealends
-syntax region agsvLineNum matchgroup=agsvLineNumSyn keepend start='\[1;30m' end='\[0m\[K\-' oneline concealends
-syntax region agsvLineNumMatch matchgroup=agsvLineNumMatchSyn keepend start='\[1;30m' end='\[0m\[K:\d\{-1,}:' oneline concealends
-syntax region agsvResultPattern matchgroup=agsvResultPatternSyn start='\[32;40m' end='\[0m\[K' oneline concealends
-syntax region agsvResultPatternOn matchgroup=agsvResultPatternOnSyn keepend start='\[32;40m\[#m' end='\[#m\[0m\[K' oneline concealends
+syntax region agsvFilePath
+            \ oneline
+            \ concealends
+            \ matchgroup=agsvFilePathSyn
+            \ keepend
+            \ start=/\[1;31m/
+            \ end=/\[0m\[K/
+syntax region agsvLineNum
+            \ oneline
+            \ concealends
+            \ matchgroup=agsvLineNumSyn
+            \ keepend
+            \ start=/\[1;30m/
+            \ end=/\[0m\[K-/
+syntax region agsvLineNumMatch
+            \ oneline
+            \ concealends
+            \ matchgroup=agsvLineNumMatchSyn
+            \ keepend
+            \ start=/\[1;30m/
+            \ end=/\[0m\[K:\d\{-1,}:/
+syntax region agsvResultPattern
+            \ oneline
+            \ concealends
+            \ matchgroup=agsvResultPatternSyn
+            \ start='\[32;40m'
+            \ end=/\[0m\[K/
+syntax region agsvResultPatternOn
+            \ oneline
+            \ concealends
+            \ matchgroup=agsvResultPatternOnSyn
+            \ keepend
+            \ start=/\[32;40m\[#m/
+            \ end=/\[#m\[0m\[K/
 
 highlight default link agsvFilePath Constant
 highlight default link agsvLineNum Identifier

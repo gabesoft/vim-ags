@@ -95,14 +95,8 @@ function! s:process(data)
         let llen = strlen(matchstr(line, lineNo))
         let wlen = lmaxlen - llen
 
-        " right justify line numbers
-        let line = s:sub(line, lineNo, ':lineStart:' . repeat(' ', wlen) . '\1')
-
-        " add a space between line number and start of text
-        let line = s:sub(line, '^\(.\{-}:lineEnd:\)\(.\{1,}$\)\@=', '\1 ')
-
-        " add a space between line and column number and start of text
-        let line = s:sub(line, '^\(.\{-}:lineColEnd:\)', '\1 ')
+        " right justify line numbers and add a space after
+        let line = s:sub(line, lineNo, ':lineStart:' . repeat(' ', wlen) . '\1 ')
 
         call add(results, line)
     endfor
@@ -125,11 +119,11 @@ function! s:resultPosition(lineNo)
         let line = getline(a:lineNo - 1)
     endif
 
-    if line =~ s:pat('^:lineStart:\s\{}\d\{1,}:lineColEnd:')
+    if line =~ s:pat('^:lineStart:\s\{}\d\{1,}\s\{}:lineColEnd:')
         let col = matchstr(line, ':\zs\d\{1,}:\@=')
     endif
 
-    let row = matchstr(line, s:pat('^:lineStart:\s\{}\zs\d\{1,}[\@='))
+    let row = matchstr(line, s:pat('^:lineStart:\s\{}\zs\d\{1,}\ze\s\{}[\@='))
 
     return [0, row, col, 0]
 endfunction
