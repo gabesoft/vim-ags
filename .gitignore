@@ -11,20 +11,16 @@
 .stat-test
 
 NERD_tree_*
+bower_components
+dist
+doc/tags
 lib-cov
 logs
-node_modules
-bower_components
 npm-debug.log
-testem.log
 pids
-results
-tmp
-dist
 public
+results
+testem.log
+tmp
 
-config/production.json
-config/gmail.json
-
-components/*/app/.jshintrc
 Highlight test
