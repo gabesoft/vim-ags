@@ -157,9 +157,9 @@ endfunction
 function! s:copyText(text)
     if &clipboard =~ '\<unnamed\>'
         let @* = a:text
+        let @@ = a:text
     elseif &clipboard =~ '\<unnamedplus\>' && has('\<unnamedplus\>')
         let @+ = a:text
-    else
         let @@ = a:text
     endif
 endfunction
