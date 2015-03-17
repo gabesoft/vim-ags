@@ -1,5 +1,5 @@
 " Default ag executable path
-let s:exe  = '/usr/local/bin/ag'
+let s:exe  = 'ag'
 
 " Last command
 let s:last = ''
