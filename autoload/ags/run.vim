@@ -23,7 +23,7 @@ function! s:cmd(args)
             let value = has_key(g:, value) ? g:[value] : arg[2]
         endif
 
-        let op   = empty(value) ? '' : '='
+        let op   = strlen(value) == 0 ? '' : '='
         let cmd .= ' ' . key . op . value
     endfor
 
