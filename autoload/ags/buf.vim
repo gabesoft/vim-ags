@@ -28,6 +28,10 @@ function! s:open(name, cmd, sameWin, lastWin)
     let sameWin = a:sameWin
     let lastWin = a:lastWin
 
+    if !s:lastWin
+        let s:lastWin = winnr('#')
+    endif
+
     if lastWin && s:lastWin && s:lastWin != bufwinnr(s:bufname) && s:lastWin <= winnr('$')
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
