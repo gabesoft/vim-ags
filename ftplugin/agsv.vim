@@ -11,12 +11,13 @@ command! -buffer AgsPrevFile   call ags#navigateResultsFiles('bW')
 command! -buffer AgsFilePathShow echom ags#filePath(line('.'))
 command! -buffer AgsFilePathCopy echom ags#copyFilePath(line('.'), 1)
 
-command! -buffer AgsOpenFileAbove call ags#openFile(line('.'), 'a', 0)
-command! -buffer AgsOpenFileBelow call ags#openFile(line('.'), 'b', 0)
-command! -buffer AgsOpenFileLeft  call ags#openFile(line('.'), 'l', 0)
-command! -buffer AgsOpenFileRight call ags#openFile(line('.'), 'r', 0)
-command! -buffer AgsOpenFileSame  call ags#openFile(line('.'), 's', 0)
-command! -buffer AgsOpenFileReuse call ags#openFile(line('.'), 'u', 0)
+command! -buffer AgsOpenFileAbove        call ags#openFile(line('.'), 'a', 0)
+command! -buffer AgsOpenFileBelow        call ags#openFile(line('.'), 'b', 0)
+command! -buffer AgsOpenFileLeft         call ags#openFile(line('.'), 'l', 0)
+command! -buffer AgsOpenFileRight        call ags#openFile(line('.'), 'r', 0)
+command! -buffer AgsOpenFileSame         call ags#openFile(line('.'), 's', 0)
+command! -buffer AgsOpenFileReuse        call ags#openFile(line('.'), 'u', 0)
+command! -buffer AgsOpenFileReuseAndQuit call ags#openFile(line('.'), 'u', 0) | call ags#quit()
 
 command! -buffer AgsViewFileAbove call ags#openFile(line('.'), 'a', 1)
 command! -buffer AgsViewFileBelow call ags#openFile(line('.'), 'b', 1)
@@ -44,6 +45,8 @@ nnoremap <buffer> or   : AgsOpenFileRight<CR>
 nnoremap <buffer> os   : AgsOpenFileSame<CR>
 nnoremap <buffer> ou   : AgsOpenFileReuse<CR>
 nnoremap <buffer> <CR> : AgsOpenFileReuse<CR>
+
+nnoremap <buffer> xu : AgsOpenFileReuseAndQuit<CR>
 
 nnoremap <buffer> OA   : AgsViewFileAbove<CR>
 nnoremap <buffer> OB   : AgsViewFileBelow<CR>

@@ -37,6 +37,7 @@ let s:usage = [
             \ ' or - open file to the right of the results window',
             \ ' os - open file in the results window',
             \ ' ou - open file in a previously opened window (alias Enter)',
+            \ ' xu - open file in a previously opened window and close the search results',
             \ ' ',
             \ ]
 

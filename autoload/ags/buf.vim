@@ -65,7 +65,7 @@ function! s:close(name)
     if bufexists(a:name)
         let nr = bufnr(a:name)
         if nr > -1
-            execute 'bw ' . nr
+            execute 'silent bw ' . nr
         endif
     endif
 endfunction
