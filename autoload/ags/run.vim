@@ -8,15 +8,22 @@ function! s:remove(args, name)
     return substitute(a:args, '\s\{}' . a:name . '\(=\S\{}\)\?', '', 'g')
 endfunction
 
+function! s:exists(args, name)
+    return a:args =~ '\s\{1,}' . a:name . '\(=\|\s\)'
+endfunction
+
 function! s:cmd(args)
     let cmd  = has_key(g:, 'ags_agexe') ? g:ags_agexe . ' ' : s:exe
     let args = a:args
 
     for [ key, arg ] in items(g:ags_agargs)
-        let value = arg[0]
-        let short = arg[1]
-        let args  = s:remove(args, key)
-        let args  = empty(short) ? args : s:remove(args, short)
+        let value  = arg[0]
+        let short  = arg[1]
+        let exists = s:exists(args, key) || (strlen(short) > 0 && s:exists(args, short))
+
+        if exists
+            continue
+        endif
 
         if value =~ '^g:'
             let value = substitute(value, '^g:', '', '')
