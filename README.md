@@ -7,8 +7,7 @@ _____     ____  ______
 ```
 
 # Silver searcher (AG) plugin for Vim
-*A Vim plugin for the [silver searcher](https://github.com/ggreer/the_silver_searcher) that focuses on clean display and  
- easy navigation through the search results*  
+*A Vim plugin for the [silver searcher](https://github.com/ggreer/the_silver_searcher) that focuses on clear display of the search results*  
 
 ### Installation   
 [Pathogen](https://github.com/tpope/vim-pathogen), [Vundle](https://github.com/gmarik/vundle), or copy to the Vim directory  
