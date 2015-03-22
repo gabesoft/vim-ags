@@ -137,7 +137,11 @@ function! ags#search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
     let lines = s:process(data)
-    call s:show(lines, a:add)
+    if empty(lines)
+        echom "No matches for " . string(a:args)
+    else
+        call s:show(lines, a:add)
+    endif
 endfunction
 
 " Returns the file path for the search results
