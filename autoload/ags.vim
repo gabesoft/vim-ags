@@ -146,18 +146,19 @@ function! ags#showChanges()
     echom string(len(s:editLines))
 
     " assuming both list have the same length
-    let idx = 1
+    let idx = 0
     while idx < len(olines)
         let eline = elines[idx]
         let oline = olines[idx]
 
         if eline !=# oline
             call add(changes, {
-                        \ 'line' : idx,
+                        \ 'line' : idx + 1,
                         \ 'file' : s:editData[idx].file,
                         \ 'row'  : s:editData[idx].row
                         \ })
         endif
+
         let idx = idx + 1
     endwhile
 
