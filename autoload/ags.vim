@@ -87,7 +87,9 @@ function! s:processLineForEdit(text)
     return text
 endfunction
 
+" TODO: move to top and document
 let s:editLines = []
+
 function! ags#makeEditable()
     let lines = ags#buf#readViewResultsBuffer()
     let lines = map(lines, 's:processLineForEdit(v:val)')
@@ -102,13 +104,6 @@ function! ags#makeEditable()
     exec 'setlocal nomodified'
 endfunction
 
-function! s:clearUndo()
-    let prev = &undolevels
-    set undolevels=-1
-    exe "normal a \<Bs>\<Esc>"
-    let &undolevels = prev
-endfunction
-
 function! ags#showChanges()
     let olines = s:editLines
     let elines = ags#buf#readEditResultsBuffer()
@@ -121,7 +116,7 @@ function! ags#showChanges()
     while idx < len(olines)
         let eline = elines[idx]
         let oline = olines[idx]
-        "echom idx . ' ' . (eline ==# oline)
+
         if eline !=# oline
             call add(changes, { 'line': idx })
         endif
@@ -130,10 +125,6 @@ function! ags#showChanges()
 
     echom string(changes)
 endfunction
-
-"function! ags#clearUndo()
-    "call s:clearUndo()
-"endfunction
 
 " Prepares the search {data} for display
 "
