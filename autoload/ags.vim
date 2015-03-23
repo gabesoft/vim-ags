@@ -78,21 +78,55 @@ function! s:show(lines, ...)
     call s:execw(obj)
 endfunction
 
+" TODO: speed this up
 function! s:processLineForEdit(text)
     let text = a:text
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
+
+    let text = s:sub(text, '^:\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1.')
+    let text = s:sub(text, '^:\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1:')
     let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
     let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
+
     return text
 endfunction
 
 " TODO: move to top and document
 let s:editLines = []
+let s:editData  = {}
 
+function! s:readEditData(lines)
+    let data = {}
+    let file = ''
+    let idx  = 0
+
+    for line in a:lines
+        if line =~ s:pat(':file:')
+            let file = s:sub(line, '^:file:', '\1')
+            let data[idx] = { 'file': file, 'row': 0 }
+        elseif line =~ s:pat(':lineStart:')
+            let row = matchstr(line, s:pat('^:lineStart:\s\{}\zs\d\{1,}\ze\s\{}[\@='))
+            let data[idx] = { 'file': file, 'row': row }
+        else
+            let data[idx] = { 'file': file, 'row': 0 }
+        endif
+        let idx = idx + 1
+    endfor
+
+    return data
+endfunction
+
+" TODO: this method is too slow : 's:processLineForEdit(v:val)'
 function! ags#makeEditable()
-    let lines = ags#buf#readViewResultsBuffer()
-    let lines = map(lines, 's:processLineForEdit(v:val)')
+    let raw = ags#buf#readViewResultsBuffer()
+    let s:editData = s:readEditData(raw )
+
+    let lines = []
+    "let lines = map(lines, 's:processLineForEdit(v:val)')
+
+    for line in raw
+        call add(lines,  s:processLineForEdit(line))
+    endfor
+
     let s:editLines = lines
 
     call ags#buf#openEditResultsBuffer()
@@ -112,18 +146,29 @@ function! ags#showChanges()
     echom string(len(s:editLines))
 
     " assuming both list have the same length
-    let idx = 0
+    let idx = 1
     while idx < len(olines)
         let eline = elines[idx]
         let oline = olines[idx]
 
         if eline !=# oline
-            call add(changes, { 'line': idx })
+            call add(changes, {
+                        \ 'line' : idx,
+                        \ 'file' : s:editData[idx].file,
+                        \ 'row'  : s:editData[idx].row
+                        \ })
         endif
         let idx = idx + 1
     endwhile
 
     echom string(changes)
+endfunction
+
+function! s:clearUndo()
+    let prev = &undolevels
+    set undolevels=-1
+    exe "normal a \<Bs>\<Esc>"
+    let &undolevels = prev
 endfunction
 
 " Prepares the search {data} for display
