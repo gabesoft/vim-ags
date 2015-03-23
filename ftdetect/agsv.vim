@@ -1,4 +1,4 @@
-augroup agsResultsWindow
+augroup agsResultsWindowView
   autocmd!
   autocmd BufNewFile,BufRead,BufEnter *.agsv set filetype=agsv
   autocmd BufLeave,BufWinLeave *.agsv call ags#clearHlResult()

@@ -1,7 +1,6 @@
 setlocal buftype=nofile
 setlocal conceallevel=3
 setlocal concealcursor=nvic
-setlocal scrolloff=2
 
 command! -buffer AgsNextResult call ags#navigateResults('W')
 command! -buffer AgsPrevResult call ags#navigateResults('bW')

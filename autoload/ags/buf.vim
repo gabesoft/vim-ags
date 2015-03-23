@@ -1,5 +1,8 @@
-" The search results buffer name
-let s:bufname = 'search-results.agsv'
+" The search results buffer name (view mode)
+let s:agsv = 'search-results.agsv'
+
+" The search results buffer name (edit mode)
+let s:agse = 'search-results.agse'
 
 " The last window where a file from search results was opened
 let s:lastWin = 0
@@ -32,7 +35,7 @@ function! s:open(name, cmd, sameWin, lastWin)
         let s:lastWin = winnr('#')
     endif
 
-    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:bufname) && s:lastWin <= winnr('$')
+    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:agsv) && s:lastWin <= winnr('$')
         execute s:lastWin . 'wincmd w'
         let sameWin = 1
     elseif lastWin
@@ -54,7 +57,7 @@ function! s:open(name, cmd, sameWin, lastWin)
         execute wincmd . a:name
     endif
 
-    if a:name != s:bufname
+    if a:name != s:agsv
         let s:lastWin = winnr()
     endif
 endfunction
@@ -74,14 +77,44 @@ function! ags#buf#openBuffer(name, cmd, sameWin, lastWin)
     call s:open(a:name, a:cmd, a:sameWin, a:lastWin)
 endfunction
 
-" Opens the search results buffer
+" Opens the view search results buffer
 "
-function! ags#buf#openResultsBuffer()
-    call s:open(s:bufname, 'bottom', 0, 0)
+function! ags#buf#openViewResultsBuffer()
+    call s:open(s:agsv, 'bottom', 0, 0)
 endfunction
 
-" Closes the search results buffer
+function! ags#buf#openEditResultsBuffer()
+    call s:open(s:agse, 'bottom', 0, 0)
+endfunction
+
+" TODO: refactor readViewResultsBuffer & readEditResultsBuffer
+
+" Returns all lines from the view search results buffer
 "
-function! ags#buf#closeResultsBuffer()
-    call s:close(s:bufname)
+function! ags#buf#readViewResultsBuffer()
+    let name = s:agsv
+    if bufexists(name)
+        let nr = bufnr(name)
+        return getbufline(nr, 0, '$')
+    else
+        return []
+    endif
+endfunction
+
+" Returns all lines from the edit search results buffer
+"
+function! ags#buf#readEditResultsBuffer()
+    let name = s:agse
+    if bufexists(name)
+        let nr = bufnr(name)
+        return getbufline(nr, 0, '$')
+    else
+        return []
+    endif
+endfunction
+
+" Closes the view search results buffer
+"
+function! ags#buf#closeViewResultsBuffer()
+    call s:close(s:agsv)
 endfunction

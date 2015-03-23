@@ -7,7 +7,7 @@ let s:lastCopy = ''
 
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
-let s:subg = function('ags#pat#subg')
+let s:gsub = function('ags#pat#gsub')
 let s:sub  = function('ags#pat#sub')
 
 " Run search
@@ -47,15 +47,15 @@ let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l'
 " Executes a write command
 "
 function! s:execw(...)
-    execute 'setlocal modifiable'
+    exec 'setlocal modifiable'
     for cmd in a:000
         if type(cmd) == type({})
             call cmd.run()
         else
-            execute cmd
+            exec cmd
         endif
     endfor
-    execute 'setlocal nomodifiable'
+    exec 'setlocal nomodifiable'
 endfunction
 
 " Displays the search results from {lines} in the
@@ -68,15 +68,72 @@ function! s:show(lines, ...)
         if self.add
             call append('$', self.lines)
         else
-            execute '%delete'
+            exec '%delete'
             call append(0, self.lines)
-            execute 'normal gg'
+            exec 'normal gg'
         endif
     endfunction
 
-    call ags#buf#openResultsBuffer()
+    call ags#buf#openViewResultsBuffer()
     call s:execw(obj)
 endfunction
+
+function! s:processLineForEdit(text)
+    let text = a:text
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
+    let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
+    let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
+    return text
+endfunction
+
+let s:editLines = []
+function! ags#makeEditable()
+    let lines = ags#buf#readViewResultsBuffer()
+    let lines = map(lines, 's:processLineForEdit(v:val)')
+    let s:editLines = lines
+
+    call ags#buf#openEditResultsBuffer()
+    exec '%delete'
+    call append(0,lines)
+    exec 'normal gg'
+    exec 'setlocal nomodified'
+    call s:clearUndo()
+    exec 'setlocal nomodified'
+endfunction
+
+function! s:clearUndo()
+    let prev = &undolevels
+    set undolevels=-1
+    exe "normal a \<Bs>\<Esc>"
+    let &undolevels = prev
+endfunction
+
+function! ags#showChanges()
+    let olines = s:editLines
+    let elines = ags#buf#readEditResultsBuffer()
+    let changes = []
+
+    echom string(len(s:editLines))
+
+    " assuming both list have the same length
+    let idx = 0
+    while idx < len(olines)
+        let eline = elines[idx]
+        let oline = olines[idx]
+        "echom idx . ' ' . (eline ==# oline)
+        if eline !=# oline
+            call add(changes, { 'line': idx })
+        endif
+        let idx = idx + 1
+    endwhile
+
+    echom string(changes)
+endfunction
+
+"function! ags#clearUndo()
+    "call s:clearUndo()
+"endfunction
 
 " Prepares the search {data} for display
 "
@@ -187,11 +244,11 @@ function! ags#cleanYankedText()
     let s:lastCopy = @0
 
     let text = @0
-    let text = s:subg(text,  ':file:', '\1')
-    let text = s:subg(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
-    let text = s:subg(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
-    let text = s:subg(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
-    let text = s:subg(text, ':resultStart:\(.\{-1,}\):end:', '\1')
+    let text = s:gsub(text,  ':file:', '\1')
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
+    let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
+    let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
 
     call s:copyText(text)
 endfunction
@@ -220,8 +277,8 @@ function! ags#openFile(lineNo, flags, preview)
         call setpos('.', pos)
 
         if a:preview
-            execute 'normal zz'
-            execute 'wincmd p'
+            exec 'normal zz'
+            exec 'wincmd p'
         endif
     endif
 endfunction
@@ -291,11 +348,11 @@ function! ags#navigateResultsFiles(...)
     let flags = a:0 > 0 ? a:1 : 'w'
     let file = s:pat(':file:')
     call search(file, flags)
-    execute 'normal zt'
+    exec 'normal zt'
 endfunction
 
 function! ags#quit()
-    call ags#buf#closeResultsBuffer()
+    call ags#buf#closeViewResultsBuffer()
 endfunction
 
 function! ags#usage()

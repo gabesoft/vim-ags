@@ -44,6 +44,6 @@ function! ags#pat#sub(expr, pat, sub)
     return substitute(a:expr, ags#pat#mkpat(a:pat), ags#pat#mkpat(a:sub), '')
 endfunction
 
-function! ags#pat#subg(expr, pat, sub)
+function! ags#pat#gsub(expr, pat, sub)
     return substitute(a:expr, ags#pat#mkpat(a:pat), ags#pat#mkpat(a:sub), 'g')
 endfunction
