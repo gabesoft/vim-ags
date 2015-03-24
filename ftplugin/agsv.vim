@@ -35,7 +35,7 @@ nnoremap <buffer> p :AgsNextFile<CR>
 nnoremap <buffer> P :AgsPrevFile<CR>
 nnoremap <buffer> a :AgsFilePathShow<CR>
 nnoremap <buffer> c :AgsFilePathCopy<CR>
-nnoremap <buffer> e :AgsMakeEditable<CR>
+nnoremap <buffer> E :AgsMakeEditable<CR>
 nnoremap <buffer> u :AgsUsage<CR>
 nnoremap <buffer> q :AgsQuit<CR>
 

@@ -25,6 +25,7 @@ let s:usage = [
             \ ' R - navigate results backwards',
             \ ' a - display the file path for current results',
             \ ' c - copy the file path for current results',
+            \ ' E - enter edit mode',
             \ ' q - close the search results window',
             \ ' u - usage',
             \ ' ',
