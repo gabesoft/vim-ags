@@ -1,6 +1,6 @@
 augroup agsResultsWindowEdit
   autocmd!
   autocmd BufNewFile,BufRead,BufEnter *.agse set filetype=agse
-  autocmd BufNewFile,BufRead,BufEnter *.agse set syntax=agsv
+  autocmd BufWriteCmd *.agse call ags#writeChanges()
 augroup END
 

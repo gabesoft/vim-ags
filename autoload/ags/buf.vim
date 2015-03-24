@@ -19,6 +19,8 @@ let s:cmd = {
             \ 'right'     : 'vert bel'
             \ }
 
+" TODO: rewrite s:open to take (name, cmd, destWin)
+
 " Opens a window for the buffer with {name} positioned according to {cmd}
 "
 " {name}    the buffer name or file path
@@ -83,8 +85,10 @@ function! ags#buf#openViewResultsBuffer()
     call s:open(s:agsv, 'bottom', 0, 0)
 endfunction
 
+" TODO: open agse in the agsv window and quit agsv
 function! ags#buf#openEditResultsBuffer()
     call s:open(s:agse, 'bottom', 0, 0)
+    call s:close(s:agsv)
 endfunction
 
 " TODO: refactor readViewResultsBuffer & readEditResultsBuffer
@@ -117,4 +121,16 @@ endfunction
 "
 function! ags#buf#closeViewResultsBuffer()
     call s:close(s:agsv)
+endfunction
+
+" Replaces all lines in buffer with the specified lines
+" and places the cursor at the first line
+"
+function! ags#buf#replaceLines(lines)
+    exec '%delete'
+    if len(a:lines) > 0
+        call append(0, a:lines)
+        exec 'normal dd'
+        exec 'normal gg'
+    endif
 endfunction

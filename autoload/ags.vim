@@ -68,9 +68,7 @@ function! s:show(lines, ...)
         if self.add
             call append('$', self.lines)
         else
-            exec '%delete'
-            call append(0, self.lines)
-            exec 'normal gg'
+            call ags#buf#replaceLines(self.lines)
         endif
     endfunction
 
@@ -82,10 +80,11 @@ endfunction
 function! s:processLineForEdit(text)
     let text = a:text
 
-    let text = s:sub(text, '^:\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1.')
-    let text = s:sub(text, '^:\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1:')
-    let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
-    let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
+    let text = substitute(text, '^\[1;30m\([ 0-9]\{-1,}\)\[0m\[K:\d\{-1,}:', '\1 ', '')
+    let text = substitute(text, '^\[1;30m\([ 0-9]\{-1,}\)\[0m\[K-', '\1 ',  '')
+
+    let text = substitute(text, '[32;40m[#m\(.\{-1,}\)[#m[0m[K', '\1', 'g')
+    let text = substitute(text, '[32;40m\(.\{-1,}\)[0m[K', '\1', 'g')
 
     return text
 endfunction
@@ -117,33 +116,47 @@ endfunction
 
 " TODO: this method is too slow : 's:processLineForEdit(v:val)'
 function! ags#makeEditable()
-    let raw = ags#buf#readViewResultsBuffer()
+    let raw        = ags#buf#readViewResultsBuffer()
     let s:editData = s:readEditData(raw )
 
     let lines = []
-    "let lines = map(lines, 's:processLineForEdit(v:val)')
-
     for line in raw
-        call add(lines,  s:processLineForEdit(line))
+        call add(lines, s:processLineForEdit(line))
     endfor
 
     let s:editLines = lines
 
     call ags#buf#openEditResultsBuffer()
-    exec '%delete'
-    call append(0,lines)
-    exec 'normal gg'
+    call ags#buf#replaceLines(lines)
     exec 'setlocal nomodified'
     call s:clearUndo()
     exec 'setlocal nomodified'
 endfunction
 
-function! ags#showChanges()
+" TODO: rename all echox methods to logx and move to own file
+"       then replace all echom call with logx
+function! s:echoe(msg)
+    echohl Error
+    echom a:msg
+    echohl None
+endfunction
+
+function! s:echoi(msg)
+    echohl MoreMsg
+    echom a:msg
+    echohl None
+endfunction
+
+" TODO: replace agsv window with agse
+function! ags#writeChanges()
     let olines = s:editLines
     let elines = ags#buf#readEditResultsBuffer()
-    let changes = []
+    let changes = {}
 
-    echom string(len(s:editLines))
+    if len(olines) != len(elines)
+        call s:echoe('Original number of lines has changed. Write cancelled.')
+        return
+    endif
 
     " assuming both list have the same length
     let idx = 0
@@ -152,17 +165,58 @@ function! ags#showChanges()
         let oline = olines[idx]
 
         if eline !=# oline
-            call add(changes, {
-                        \ 'line' : idx + 1,
-                        \ 'file' : s:editData[idx].file,
-                        \ 'row'  : s:editData[idx].row
-                        \ })
+            let key = s:editData[idx].file
+            if !has_key(changes, key)
+                let changes[key] = []
+            endif
+
+            let value = {
+                        \ 'line'     : s:editData[idx].row,
+                        \ 'data'     : s:sub(eline, '^\s\{}\d\{}\s\{2}', ''), 
+                        \ 'origData' : eline,
+                        \ 'origLine' : idx
+                        \ }
+
+            call add(changes[key], value)
         endif
 
         let idx = idx + 1
     endwhile
 
-    echom string(changes)
+    "echom string(changes)
+
+    let fileCount = 0
+    let lineCount = 0
+
+    for [file, change] in items(changes)
+        let lines     = readfile(file, 'b')
+        let currCount = 0
+
+        for ch in change
+            if ch.line > 0
+                let lines[ch.line - 1] = ch.data
+                let currCount = currCount + 1
+            endif
+            let s:editLines[ch.origLine] = ch.origData
+        endfor
+
+        if currCount > 0
+            let fileCount = fileCount + 1
+            let lineCount = lineCount + currCount
+            execute 'silent doautocmd FileWritePre ' . file
+            call writefile(lines, file, 'b')
+            execute 'silent doautocmd FileWritePost ' . file
+        endif
+    endfor
+
+    call s:echoi(lineCount . ' lines changed in ' . fileCount . ' files')
+
+    let nr = bufwinnr('search-results.agse')
+    exec nr . 'wincmd w'
+    exec 'setlocal nomodified'
+
+    " TODO: after a successful replace update s:editLines to contain the saved
+    " changes
 endfunction
 
 function! s:clearUndo()
