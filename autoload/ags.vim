@@ -77,19 +77,6 @@ function! s:show(lines, ...)
     call s:execw(obj)
 endfunction
 
-" TODO: speed this up
-function! s:processLineForEdit(text)
-    let text = a:text
-
-    let text = substitute(text, '^\[1;30m\([ 0-9]\{-1,}\)\[0m\[K:\d\{-1,}:', '\1 ', '')
-    let text = substitute(text, '^\[1;30m\([ 0-9]\{-1,}\)\[0m\[K-', '\1 ',  '')
-
-    let text = substitute(text, '[32;40m[#m\(.\{-1,}\)[#m[0m[K', '\1', 'g')
-    let text = substitute(text, '[32;40m\(.\{-1,}\)[0m[K', '\1', 'g')
-
-    return text
-endfunction
-
 " TODO: move to top and document
 let s:editLines = []
 let s:editData  = {}
@@ -115,16 +102,30 @@ function! s:readEditData(lines)
     return data
 endfunction
 
-" TODO: this method is too slow : 's:processLineForEdit(v:val)'
-function! ags#makeEditable()
-    let raw        = ags#buf#readViewResultsBuffer()
-    let s:editData = s:readEditData(raw )
+function! s:processLinesForEdit(lines)
+    let lines          = []
 
-    let lines = []
-    for line in raw
-        call add(lines, s:processLineForEdit(line))
+    let lineColPat     = s:pat('^:\lineStart:\([ 0-9]\{-1,}\):lineColEnd:')
+    let linePat        = s:pat('^:\lineStart:\([ 0-9]\{-1,}\):lineEnd:')
+    let resultDelimPat = s:pat(':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:')
+    let resultPat      = s:pat(':resultStart:\(.\{-1,}\):end:')
+
+    for line in a:lines
+        let line = substitute(line, lineColPat, '\1 ', '')
+        let line = substitute(line, linePat, '\1 ', '')
+        let line = substitute(line, resultDelimPat, '\1', 'g')
+        let line = substitute(line, resultPat, '\1', 'g')
+        call add(lines, line)
     endfor
 
+    return lines
+endfunction
+
+function! ags#makeEditable()
+    let lines      = ags#buf#readViewResultsBuffer()
+    let s:editData = s:readEditData(lines)
+
+    let lines       = s:processLinesForEdit(lines)
     let s:editLines = lines
 
     call ags#buf#openEditResultsBuffer()
@@ -173,7 +174,7 @@ function! ags#writeChanges()
 
             let value = {
                         \ 'line'     : s:editData[idx].row,
-                        \ 'data'     : s:sub(eline, '^\s\{}\d\{}\s\{2}', ''), 
+                        \ 'data'     : s:sub(eline, '^\s\{}\d\{}\s\{2}', ''),
                         \ 'origData' : eline,
                         \ 'origLine' : idx
                         \ }
@@ -229,7 +230,7 @@ endfunction
 
 " Prepares the search {data} for display
 "
-function! s:process(data)
+function! s:processSearchData(data)
     let data    = substitute(a:data, '\e', '', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 0
@@ -285,7 +286,7 @@ endfunction
 function! ags#search(args, add)
     let args  = empty(a:args) ? expand('<cword>') : a:args
     let data  = s:run(args)
-    let lines = s:process(data)
+    let lines = s:processSearchData(data)
     if empty(lines)
         echom "No matches for " . string(a:args)
     else

@@ -123,6 +123,12 @@ function! ags#buf#closeViewResultsBuffer()
     call s:close(s:agsv)
 endfunction
 
+" Closes the edit search results buffer
+"
+function! ags#buf#closeEditResultsBuffer()
+    call s:close(s:agse)
+endfunction
+
 " Replaces all lines in buffer with the specified lines
 " and places the cursor at the first line
 "
