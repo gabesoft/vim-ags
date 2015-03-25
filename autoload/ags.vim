@@ -159,7 +159,6 @@ function! ags#writeChanges()
         return
     endif
 
-    " assuming both list have the same length
     let idx = 0
     while idx < len(olines)
         let eline = elines[idx]
