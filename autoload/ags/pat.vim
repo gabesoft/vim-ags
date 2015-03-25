@@ -35,6 +35,8 @@ function! ags#pat#mkpat(...)
         let key .= has_key(s:, p) ? s:[p] : p
     endfor
 
+    if strlen(key) == 0 | return '' | endif
+
     if has_key(s:cache, key) | return s:cache[key] | endif
 
     let pat = key

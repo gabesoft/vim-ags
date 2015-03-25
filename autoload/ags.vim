@@ -149,7 +149,6 @@ function! s:echoi(msg)
     echohl None
 endfunction
 
-" TODO: replace agsv window with agse
 function! ags#writeChanges()
     let olines = s:editLines
     let elines = ags#buf#readEditResultsBuffer()
@@ -184,8 +183,6 @@ function! ags#writeChanges()
 
         let idx = idx + 1
     endwhile
-
-    "echom string(changes)
 
     let fileCount = 0
     let lineCount = 0
@@ -445,7 +442,7 @@ function! ags#navigateResultsFiles(...)
 endfunction
 
 function! ags#quit()
-    call ags#buf#closeViewResultsBuffer()
+    call ags#buf#closeResultsBuffer()
 endfunction
 
 function! ags#usage()

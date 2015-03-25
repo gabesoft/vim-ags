@@ -19,7 +19,26 @@ let s:cmd = {
             \ 'right'     : 'vert bel'
             \ }
 
-" TODO: rewrite s:open to take (name, cmd, destWin)
+" Opens a window for the buffer with {name} positioned according to {cmd}
+"
+" {name} the buffer name or file path
+" {cmd}  the position command
+"
+function! s:openWin(name, cmd)
+    let bufcmd = a:cmd == 'same' ? 'buffer ' : a:cmd . ' sbuffer '
+    let wincmd = a:cmd == 'same' ? 'edit '   : a:cmd . ' new '
+
+    if bufexists(a:name)
+        let nr = bufwinnr(a:name)
+        if nr == -1
+            exec bufcmd . bufnr(a:name)
+        else
+            call s:focus(nr)
+        endif
+    else
+        execute wincmd . a:name
+    endif
+endfunction
 
 " Opens a window for the buffer with {name} positioned according to {cmd}
 "
@@ -37,29 +56,20 @@ function! s:open(name, cmd, sameWin, lastWin)
         let s:lastWin = winnr('#')
     endif
 
-    if lastWin && s:lastWin && s:lastWin != bufwinnr(s:agsv) && s:lastWin <= winnr('$')
-        execute s:lastWin . 'wincmd w'
-        let sameWin = 1
-    elseif lastWin
-        let cmd = s:cmd.above
-        let sameWin = 0
-    endif
-
-    let bufcmd = sameWin ? 'buffer ' : cmd . ' sbuffer '
-    let wincmd = sameWin ? 'edit '   : cmd . ' new '
-
-    if bufexists(a:name)
-        let nr = bufwinnr(a:name)
-        if nr == -1
-            execute bufcmd . bufnr(a:name)
+    if lastWin
+        let searchWin = s:lastWin == bufwinnr(s:agsv) || s:lastWin == bufwinnr(s:agse)
+        if !searchWin && s:lastWin <= winnr('$')
+            call s:focus(s:lastWin)
+            let sameWin = 1
         else
-            execute nr . 'wincmd w'
+            let cmd = s:cmd.above
+            let sameWin = 0
         endif
-    else
-        execute wincmd . a:name
     endif
 
-    if a:name != s:agsv
+    call s:openWin(a:name, sameWin ? 'same' : cmd)
+
+    if a:name != s:agsv && a:name != s:agse
         let s:lastWin = winnr()
     endif
 endfunction
@@ -79,19 +89,55 @@ function! ags#buf#openBuffer(name, cmd, sameWin, lastWin)
     call s:open(a:name, a:cmd, a:sameWin, a:lastWin)
 endfunction
 
-" Opens the view search results buffer
+" Gets the edit or view search results bufwinnr
+"
+function! s:getSearchResultsBufWinnr()
+    let nr = -1
+    if nr == -1
+        let nr = bufwinnr(s:agsv)
+    endif
+    if nr == -1
+        let nr = bufwinnr(s:agse)
+    endif
+    return nr
+endfunction
+
+" Focuses the window with {nr}
+"
+" {nr} the window number
+"
+function! s:focus(nr)
+    exec a:nr . 'wincmd w'
+endfunction
+
+" Opens the search results buffer
+"
+function! s:openResultsBuffer(name)
+    let nr = s:getSearchResultsBufWinnr()
+    if nr > 0 && nr <= winnr('$')
+        call s:focus(nr)
+        exec 'setlocal nomodified'
+        call s:openWin(a:name, 'same')
+    else
+        call s:open(a:name, 'bottom', 0, 0)
+    endif
+endfunction
+
+" Opens the view search results buffer and closes the edit search results
+" buffer
 "
 function! ags#buf#openViewResultsBuffer()
-    call s:open(s:agsv, 'bottom', 0, 0)
+    call s:openResultsBuffer(s:agsv)
+    call s:close(s:agse)
 endfunction
 
-" TODO: open agse in the agsv window and quit agsv
+" Opens the edit search results buffer and closes the view search results
+" buffer
+"
 function! ags#buf#openEditResultsBuffer()
-    call s:open(s:agse, 'bottom', 0, 0)
+    call s:openResultsBuffer(s:agse)
     call s:close(s:agsv)
 endfunction
-
-" TODO: refactor readViewResultsBuffer & readEditResultsBuffer
 
 " Returns all lines from the view search results buffer
 "
@@ -117,15 +163,15 @@ function! ags#buf#readEditResultsBuffer()
     endif
 endfunction
 
-" Closes the view search results buffer
+" Closes the search results buffer
 "
-function! ags#buf#closeViewResultsBuffer()
+function! ags#buf#closeResultsBuffer()
+    let nr = s:getSearchResultsBufWinnr()
+    if nr > 0 && nr <= winnr('$')
+        call s:focus(nr)
+        exec 'setlocal nomodified'
+    endif
     call s:close(s:agsv)
-endfunction
-
-" Closes the edit search results buffer
-"
-function! ags#buf#closeEditResultsBuffer()
     call s:close(s:agse)
 endfunction
 
