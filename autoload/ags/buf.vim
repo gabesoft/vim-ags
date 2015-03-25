@@ -139,6 +139,13 @@ function! ags#buf#openEditResultsBuffer()
     call s:close(s:agsv)
 endfunction
 
+" Focuses the search results window
+"
+function! ags#buf#focusResultsWindow()
+    let nr = s:getSearchResultsBufWinnr()
+    call s:focus(nr)
+endfunction
+
 " Returns all lines from the view search results buffer
 "
 function! ags#buf#readViewResultsBuffer()

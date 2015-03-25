@@ -25,7 +25,8 @@ command! -buffer AgsViewFileRight call ags#openFile(line('.'), 'r', 1)
 command! -buffer AgsViewFileSame  call ags#openFile(line('.'), 's', 1)
 command! -buffer AgsViewFileReuse call ags#openFile(line('.'), 'u', 1)
 
-command! -buffer AgsMakeEditable call ags#makeEditable()
+command! -buffer AgsEditSearchResults call ags#editResults()
+
 command! -buffer AgsQuit  call ags#quit()
 command! -buffer AgsUsage call ags#usage()
 
@@ -35,7 +36,7 @@ nnoremap <buffer> p :AgsNextFile<CR>
 nnoremap <buffer> P :AgsPrevFile<CR>
 nnoremap <buffer> a :AgsFilePathShow<CR>
 nnoremap <buffer> c :AgsFilePathCopy<CR>
-nnoremap <buffer> E :AgsMakeEditable<CR>
+nnoremap <buffer> E :AgsEditSearchResults<CR>
 nnoremap <buffer> u :AgsUsage<CR>
 nnoremap <buffer> q :AgsQuit<CR>
 

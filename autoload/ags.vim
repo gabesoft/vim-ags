@@ -5,6 +5,12 @@ let s:hlpos = []
 " Last copied value
 let s:lastCopy = ''
 
+" Last edited search results
+let s:editLines = []
+
+" Last edited search data
+let s:editData  = {}
+
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
@@ -45,6 +51,31 @@ let s:usage = [
 " Window position flags
 let s:wflags = { 't' : 'above', 'a' : 'above', 'b' : 'below', 'r' : 'right', 'l' : 'left' }
 
+" Echo error
+"
+function! s:echoe(msg)
+    echohl Error
+    echom a:msg
+    echohl None
+endfunction
+
+" Echo info
+"
+function! s:echoi(msg)
+    echohl MoreMsg
+    echom a:msg
+    echohl None
+endfunction
+
+" Clears undo history
+"
+function! s:clearUndo()
+    let prev = &undolevels
+    set undolevels=-1
+    exe "normal a \<Bs>\<Esc>"
+    let &undolevels = prev
+endfunction
+
 " Executes a write command
 "
 function! s:execw(...)
@@ -77,10 +108,6 @@ function! s:show(lines, ...)
     call s:execw(obj)
 endfunction
 
-" TODO: move to top and document
-let s:editLines = []
-let s:editData  = {}
-
 function! s:readEditData(lines)
     let data = {}
     let file = ''
@@ -111,8 +138,8 @@ function! s:processLinesForEdit(lines)
     let resultPat      = s:pat(':resultStart:\(.\{-1,}\):end:')
 
     for line in a:lines
-        let line = substitute(line, lineColPat, '\1 ', '')
-        let line = substitute(line, linePat, '\1 ', '')
+        let line = substitute(line, lineColPat, '\1', '')
+        let line = substitute(line, linePat, '\1', '')
         let line = substitute(line, resultDelimPat, '\1', 'g')
         let line = substitute(line, resultPat, '\1', 'g')
         call add(lines, line)
@@ -121,7 +148,9 @@ function! s:processLinesForEdit(lines)
     return lines
 endfunction
 
-function! ags#makeEditable()
+" Makes the search results window editable
+"
+function! ags#editResults()
     let lines      = ags#buf#readViewResultsBuffer()
     let s:editData = s:readEditData(lines)
 
@@ -130,98 +159,84 @@ function! ags#makeEditable()
 
     call ags#buf#openEditResultsBuffer()
     call ags#buf#replaceLines(lines)
-    exec 'setlocal nomodified'
     call s:clearUndo()
     exec 'setlocal nomodified'
 endfunction
 
-" TODO: rename all echox methods to logx and move to own file
-"       then replace all echom call with logx
-function! s:echoe(msg)
-    echohl Error
-    echom a:msg
-    echohl None
-endfunction
-
-function! s:echoi(msg)
-    echohl MoreMsg
-    echom a:msg
-    echohl None
-endfunction
-
-function! ags#writeChanges()
-    let olines = s:editLines
-    let elines = ags#buf#readEditResultsBuffer()
+" Gets the edited lines from the search results window
+"
+function! s:changes()
+    let olines  = s:editLines
+    let elines  = ags#buf#readEditResultsBuffer()
     let changes = {}
+    let idx     = 0
 
-    if len(olines) != len(elines)
-        call s:echoe('Original number of lines has changed. Write cancelled.')
-        return
-    endif
+    if len(olines) != len(elines) | return [ 1, changes ] | endif
 
-    let idx = 0
     while idx < len(olines)
         let eline = elines[idx]
         let oline = olines[idx]
 
         if eline !=# oline
             let key = s:editData[idx].file
+
             if !has_key(changes, key)
                 let changes[key] = []
             endif
 
-            let value = {
+            call add(changes[key], {
                         \ 'line'     : s:editData[idx].row,
-                        \ 'data'     : s:sub(eline, '^\s\{}\d\{}\s\{2}', ''),
+                        \ 'data'     : s:sub(eline, '^\s\{}\d\{}\s\{1}', ''),
                         \ 'origData' : eline,
                         \ 'origLine' : idx
-                        \ }
-
-            call add(changes[key], value)
+                        \ })
         endif
 
         let idx = idx + 1
     endwhile
 
-    let fileCount = 0
-    let lineCount = 0
+    return [ 0,  changes ]
+endfunction
+
+" Writes the search results window changes to their corresponding files
+"
+function! ags#writeChanges()
+    let olines           = s:editLines
+    let elines           = ags#buf#readEditResultsBuffer()
+    let [ err, changes ] = s:changes()
+    let fileCount        = 0
+    let lineCount        = 0
+
+    if err
+        call s:echoe('Original number of lines has changed. Write cancelled.')
+        return
+    endif
 
     for [file, change] in items(changes)
-        let lines     = readfile(file, 'b')
-        let currCount = 0
+        let lines = readfile(file, 'b')
+        let cnt   = 0
 
         for ch in change
             if ch.line > 0
                 let lines[ch.line - 1] = ch.data
-                let currCount = currCount + 1
+                let cnt = cnt + 1
             endif
             let s:editLines[ch.origLine] = ch.origData
         endfor
 
-        if currCount > 0
+        if cnt > 0
             let fileCount = fileCount + 1
-            let lineCount = lineCount + currCount
+            let lineCount = lineCount + cnt
+
             execute 'silent doautocmd FileWritePre ' . file
             call writefile(lines, file, 'b')
             execute 'silent doautocmd FileWritePost ' . file
         endif
     endfor
 
-    call s:echoi(lineCount . ' lines changed in ' . fileCount . ' files')
-
-    let nr = bufwinnr('search-results.agse')
-    exec nr . 'wincmd w'
+    call s:echoi('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
+    call ags#buf#focusResultsWindow()
     exec 'setlocal nomodified'
-
-    " TODO: after a successful replace update s:editLines to contain the saved
-    " changes
-endfunction
-
-function! s:clearUndo()
-    let prev = &undolevels
-    set undolevels=-1
-    exe "normal a \<Bs>\<Esc>"
-    let &undolevels = prev
 endfunction
 
 " Prepares the search {data} for display

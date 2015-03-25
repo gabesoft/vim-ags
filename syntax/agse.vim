@@ -1,5 +1,5 @@
-syntax match agseLineNum /^\s\{}\d\{1,}\s\{2}/
-syntax match agseLineNumMatch /^\s\{}\d\{1,}\s\{2}/
+syntax match agseLineNum /^\s\{}\d\{1,}\s\{1}/
+syntax match agseLineNumMatch /^\s\{}\d\{1,}\s\{1}/
 
 syntax region agseFilePath
             \ oneline
