@@ -5,6 +5,10 @@ let s:editLines = []
 " result line belongs
 let s:dataMap  = {}
 
+" Line number offset
+" The actual file line starts after the line number offset
+let s:offset = 0
+
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
@@ -19,45 +23,12 @@ function! s:clearUndo()
     let &undolevels = prev
 endfunction
 
-" Gets the changed lines from the search results window
-"
-function! s:changes()
-    let olines  = s:editLines
-    let elines  = ags#buf#readEditResultsBuffer()
-    let changes = {}
-    let idx     = 0
-
-    if len(olines) != len(elines) | return [ 1, changes ] | endif
-
-    while idx < len(olines)
-        let eline = elines[idx]
-        let oline = olines[idx]
-
-        if eline !=# oline
-            let key = s:dataMap[idx].file
-
-            if !has_key(changes, key)
-                let changes[key] = []
-            endif
-
-            call add(changes[key], {
-                        \ 'line'     : s:dataMap[idx].row,
-                        \ 'data'     : substitute(eline, '^\s\{}\d\{}\s\{1}', '',  ''),
-                        \ 'origData' : eline,
-                        \ 'origLine' : idx
-                        \ })
-        endif
-
-        let idx = idx + 1
-    endwhile
-
-    return [ 0,  changes ]
-endfunction
-
 " Prepares the search {lines} for display in editable mode
 "
 function! s:processLinesForEdit(lines)
-    let lines          = []
+    if empty(a:lines) | return [] | endif
+
+    let lines = []
 
     let lineColPat     = s:pat('^:\lineStart:\([ 0-9]\{-1,}\):lineColEnd:')
     let linePat        = s:pat('^:\lineStart:\([ 0-9]\{-1,}\):lineEnd:')
@@ -73,6 +44,10 @@ function! s:processLinesForEdit(lines)
     endfor
 
     return lines
+endfunction
+
+function! s:calculateOffset(lines)
+    return len(a:lines) < 2 ? 0 : strlen(matchstr(a:lines[1], '^\s\{}\d\{}\s'))
 endfunction
 
 " Makes a data hash map from {lines}
@@ -104,27 +79,42 @@ function! s:makeDataMap(lines)
     return data
 endfunction
 
-" Makes the search results window editable
+" Gets the changed lines from the search results window
 "
-function! ags#edit#show()
-    if ags#buf#openEditResultsBufferIfExists() | return | endif
+" Returns a dictionary of the form { file: lineInfo }
+"
+function! s:changes()
+    let olines  = s:editLines
+    let elines  = ags#buf#readEditResultsBuffer()
+    let changes = {}
+    let idx     = 0
 
-    let lines     = ags#buf#readViewResultsBuffer()
-    let s:dataMap = s:makeDataMap(lines)
+    if len(olines) != len(elines) | return [ 1, changes ] | endif
 
-    let lines       = s:processLinesForEdit(lines)
-    let s:editLines = lines
+    while idx < len(olines)
+        let eline = elines[idx]
+        let oline = olines[idx]
+        let nrpat = '^.\{' . string(s:offset) . '}'
 
-    if empty(lines)
-        call ags#log#warn('There are no search results to edit')
-        return
-    endif
+        if eline !=# oline
+            let file = s:dataMap[idx].file
 
-    call ags#buf#openEditResultsBuffer()
-    call ags#buf#replaceLines(lines)
-    call s:clearUndo()
-    exec 'setlocal nomodified'
-    exec 'normal 2Gw'
+            if !has_key(changes, file)
+                let changes[file] = []
+            endif
+
+            call add(changes[file], {
+                        \ 'fileLine' : s:dataMap[idx].row,
+                        \ 'fileData' : substitute(eline, nrpat, '',  ''),
+                        \ 'editLine' : idx,
+                        \ 'editData' : eline
+                        \ })
+        endif
+
+        let idx = idx + 1
+    endwhile
+
+    return [ 0,  changes ]
 endfunction
 
 " Writes the search results window changes to their corresponding files
@@ -144,24 +134,24 @@ function! ags#edit#write()
     for [file, change] in items(changes)
         let lines = readfile(file, 'b')
         let cnt   = 0
-        let path  = fnameescape(file)
 
         for ch in change
-            if ch.line > 0
-                let lines[ch.line - 1] = ch.data
+            if ch.fileLine > 0
+                let lines[ch.fileLine - 1] = ch.fileData
                 let cnt = cnt + 1
             endif
-            let s:editLines[ch.origLine] = ch.origData
+            let s:editLines[ch.editLine] = ch.editData
         endfor
 
         if cnt > 0
             let fileCount = fileCount + 1
             let lineCount = lineCount + cnt
+            let path      = fnameescape(file)
 
             if filewritable(path)
-              execute 'silent doautocmd FileWritePre ' . path
-              call writefile(lines, path, 'b')
-              execute 'silent doautocmd FileWritePost ' . path
+                execute 'silent doautocmd FileWritePre ' . path
+                call writefile(lines, path, 'b')
+                execute 'silent doautocmd FileWritePost ' . path
             endif
         endif
     endfor
@@ -169,4 +159,28 @@ function! ags#edit#write()
     call ags#log#info('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
     call ags#buf#focusResultsWindow()
     exec 'setlocal nomodified'
+endfunction
+
+" Makes the search results window editable
+"
+function! ags#edit#show()
+    if ags#buf#openEditResultsBufferIfExists() | return | endif
+
+    let lines     = ags#buf#readViewResultsBuffer()
+    let s:dataMap = s:makeDataMap(lines)
+
+    let lines       = s:processLinesForEdit(lines)
+    let s:editLines = lines
+    let s:offset    = s:calculateOffset(lines)
+
+    if empty(lines)
+        call ags#log#warn('There are no search results to edit')
+        return
+    endif
+
+    call ags#buf#openEditResultsBuffer()
+    call ags#buf#replaceLines(lines)
+    call s:clearUndo()
+    exec 'setlocal nomodified'
+    exec 'normal 2Gw'
 endfunction

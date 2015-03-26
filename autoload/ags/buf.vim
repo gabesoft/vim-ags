@@ -91,15 +91,9 @@ endfunction
 
 " Gets the edit or view search results bufwinnr
 "
-function! s:getSearchResultsBufWinnr()
-    let nr = -1
-    if nr == -1
-        let nr = bufwinnr(s:agsv)
-    endif
-    if nr == -1
-        let nr = bufwinnr(s:agse)
-    endif
-    return nr
+function! s:getSearchResultsBufwinnr()
+    let nr = bufwinnr(s:agsv)
+    return nr == -1 ? bufwinnr(s:agse) : nr
 endfunction
 
 " Focuses the window with {nr}
@@ -113,7 +107,7 @@ endfunction
 " Opens the search results buffer
 "
 function! s:openResultsBuffer(name)
-    let nr = s:getSearchResultsBufWinnr()
+    let nr = s:getSearchResultsBufwinnr()
     if nr > 0 && nr <= winnr('$')
         call s:focus(nr)
         exec 'setlocal nomodified'
@@ -139,10 +133,21 @@ function! ags#buf#openEditResultsBuffer()
     call s:close(s:agsv)
 endfunction
 
+" Opens the edit results buffer if it exists and returns 1; otherwise, it returns 0
+"
+function! ags#buf#openEditResultsBufferIfExists()
+    if bufwinnr(s:agse) != -1 || bufnr(s:agse) != -1
+        call s:open(s:agse, 'bottom', 0, 0)
+        return 1
+    else
+        return 0
+    endif
+endfunction
+
 " Focuses the search results window
 "
 function! ags#buf#focusResultsWindow()
-    let nr = s:getSearchResultsBufWinnr()
+    let nr = s:getSearchResultsBufwinnr()
     call s:focus(nr)
 endfunction
 
@@ -170,22 +175,10 @@ function! ags#buf#readEditResultsBuffer()
     endif
 endfunction
 
-" Opens the edit results buffer if it exists and returns 1
-" Otherwise it returns 0
-"
-function! ags#buf#openEditResultsBufferIfExists()
-    if bufwinnr(s:agse) != -1 || bufnr(s:agse) != -1
-        call s:open(s:agse, 'bottom', 0, 0)
-        return 1
-    else
-        return 0
-    endif
-endfunction
-
 " Closes the search results buffer
 "
 function! ags#buf#closeResultsBuffer()
-    let nr = s:getSearchResultsBufWinnr()
+    let nr = s:getSearchResultsBufwinnr()
     if nr > 0 && nr <= winnr('$')
         call s:focus(nr)
         exec 'setlocal nomodified'
