@@ -152,6 +152,7 @@ function! ags#edit#write()
     for [file, change] in items(changes)
         let lines = readfile(file, 'b')
         let cnt   = 0
+        let path  = fnameescape(file)
 
         for ch in change
             if ch.line > 0
@@ -165,9 +166,11 @@ function! ags#edit#write()
             let fileCount = fileCount + 1
             let lineCount = lineCount + cnt
 
-            execute 'silent doautocmd FileWritePre ' . file
-            call writefile(lines, file, 'b')
-            execute 'silent doautocmd FileWritePost ' . file
+            if filereadable(path)
+              execute 'silent doautocmd FileWritePre ' . path
+              call writefile(lines, path, 'b')
+              execute 'silent doautocmd FileWritePost ' . path
+            endif
         endif
     endfor
 
