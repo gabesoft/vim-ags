@@ -170,6 +170,18 @@ function! ags#buf#readEditResultsBuffer()
     endif
 endfunction
 
+" Opens the edit results buffer if it exists and returns 1
+" Otherwise it returns 0
+"
+function! ags#buf#openEditResultsBufferIfExists()
+    if bufwinnr(s:agse) != -1 || bufnr(s:agse) != -1
+        call s:open(s:agse, 'bottom', 0, 0)
+        return 1
+    else
+        return 0
+    endif
+endfunction
+
 " Closes the search results buffer
 "
 function! ags#buf#closeResultsBuffer()

@@ -107,6 +107,8 @@ endfunction
 " Makes the search results window editable
 "
 function! ags#edit#show()
+    if ags#buf#openEditResultsBufferIfExists() | return | endif
+
     let lines     = ags#buf#readViewResultsBuffer()
     let s:dataMap = s:makeDataMap(lines)
 
