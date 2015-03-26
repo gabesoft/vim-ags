@@ -1,9 +1,9 @@
-" Last edited search results, used to determine which lines have changed
-let s:editLines = []
-
 " Search data map, used for determining the file and line number where a search
 " result line belongs
-let s:dataMap  = {}
+let s:dataMap = {}
+
+" Last edited search results, used to determine which lines have changed
+let s:editLines = []
 
 " Line number offset
 " The actual file line starts after the line number offset
