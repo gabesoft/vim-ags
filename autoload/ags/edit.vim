@@ -184,3 +184,42 @@ function! ags#edit#show()
     exec 'setlocal nomodified'
     exec 'normal 2Gw'
 endfunction
+
+function! s:changeCursorCol(col)
+    let pos = getpos('.')
+    let pos[2] = a:col
+    call setpos('.', pos)
+endfunction
+
+function! s:getCursorCol()
+    return getpos('.')[2]
+endfunction
+
+function! s:startInsert(insert, moveToStart)
+    if a:moveToStart
+        call s:changeCursorCol(1)
+    endif
+
+    if a:insert
+        exec 'startinsert'
+    endif
+endfunction
+
+function! ags#edit#moveCursorToLineStart(insert, moveToStart)
+    let line = getline('.')
+    if line =~ s:pat('^:file:') || line =~ '--'
+        call s:startInsert(a:insert, a:moveToStart)
+        return
+    endif
+
+    call s:changeCursorCol(s:offset + 1)
+    call s:startInsert(a:insert, 0)
+endfunction
+
+function! ags#edit#moveCursorFromNrLine(insert)
+    if s:getCursorCol() < s:offset + 1
+        call ags#edit#moveCursorToLineStart(a:insert, 0)
+    else
+        call s:startInsert(a:insert, 0)
+    endif
+endfunction
