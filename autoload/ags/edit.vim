@@ -166,7 +166,7 @@ function! ags#edit#write()
             let fileCount = fileCount + 1
             let lineCount = lineCount + cnt
 
-            if filereadable(path)
+            if filewritable(path)
               execute 'silent doautocmd FileWritePre ' . path
               call writefile(lines, path, 'b')
               execute 'silent doautocmd FileWritePost ' . path
