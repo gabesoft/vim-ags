@@ -137,7 +137,7 @@ function! ags#search(args, add)
     let data  = s:run(args)
     let lines = s:processSearchData(data)
     if empty(lines)
-        echom "No matches for " . string(a:args)
+        call ags#log#warn("No matches for " . string(a:args))
     else
         call s:show(lines, a:add)
     endif

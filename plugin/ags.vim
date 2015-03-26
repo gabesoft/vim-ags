@@ -25,5 +25,7 @@ if !exists('g:ags_agargs')
                 \ }
 endif
 
-command! -nargs=* -complete=file Ags call ags#search(<q-args>, 0)
+command! -nargs=* -complete=file Ags    call ags#search(<q-args>, 0)
 command! -nargs=* -complete=file AgsAdd call ags#search(<q-args>, 1)
+command! -nargs=0 AgsEditSearchResults  call ags#edit#show()
+command! -nargs=0 AgsQuit               call ags#quit()

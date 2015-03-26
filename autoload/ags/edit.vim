@@ -10,22 +10,6 @@ let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
 let s:sub  = function('ags#pat#sub')
 
-" Echo error
-"
-function! s:echoe(msg)
-    echohl Error
-    echom a:msg
-    echohl None
-endfunction
-
-" Echo info
-"
-function! s:echoi(msg)
-    echohl MoreMsg
-    echom a:msg
-    echohl None
-endfunction
-
 " Clears undo history
 "
 function! s:clearUndo()
@@ -129,6 +113,11 @@ function! ags#edit#show()
     let lines       = s:processLinesForEdit(lines)
     let s:editLines = lines
 
+    if empty(lines)
+        call ags#log#warn('There are no search results to edit')
+        return
+    endif
+
     call ags#buf#openEditResultsBuffer()
     call ags#buf#replaceLines(lines)
     call s:clearUndo()
@@ -145,7 +134,7 @@ function! ags#edit#write()
     let lineCount        = 0
 
     if err
-        call s:echoe('Original number of lines has changed. Write cancelled.')
+        call ags#log#error('Original number of lines has changed. Write cancelled.')
         return
     endif
 
@@ -174,7 +163,7 @@ function! ags#edit#write()
         endif
     endfor
 
-    call s:echoi('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
+    call ags#log#info('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
     call ags#buf#focusResultsWindow()
     exec 'setlocal nomodified'
 endfunction
