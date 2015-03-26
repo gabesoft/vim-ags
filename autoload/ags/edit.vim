@@ -122,6 +122,7 @@ function! ags#edit#show()
     call ags#buf#replaceLines(lines)
     call s:clearUndo()
     exec 'setlocal nomodified'
+    exec 'normal 2Gw'
 endfunction
 
 " Writes the search results window changes to their corresponding files
