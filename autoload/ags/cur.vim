@@ -28,7 +28,7 @@ function! s:CUR.isLineNumber()
 endfunction
 
 function! s:CUR.isOutside()
-    return s:getCursorCol() < self.offset + 1
+    return s:getCursorCol() <= self.offset
 endfunction
 
 function! s:CUR.moveToStart()

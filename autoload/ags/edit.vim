@@ -216,11 +216,12 @@ function! ags#edit#show()
         return
     endif
 
+    let pos = getpos('.')
     call ags#buf#openEditResultsBuffer()
     call ags#buf#replaceLines(lines)
     call s:clearUndoHistory()
     exec 'setlocal nomodified'
-    exec 'normal 2Gw'
+    call setpos('.', pos)
 endfunction
 
 " Moves the cursor to the start of the file line
