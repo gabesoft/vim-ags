@@ -6,6 +6,14 @@ if !exists('g:ags_agexe')      | let g:ags_agexe = 'ag'      | endif
 if !exists('g:ags_agmaxcount') | let g:ags_agmaxcount = 2000 | endif
 if !exists('g:ags_agcontext')  | let g:ags_agcontext = 3     | endif
 
+if !exists('g:ags_edit_skip_if_file_changed')
+    let g:ags_edit_skip_if_file_changed = 0
+endif
+
+if !exists('g:ags_edit_show_line_numbers')
+    let g:ags_edit_show_line_numbers = 0
+endif
+
 if !exists('g:ags_agargs')
     " Predefined search arguments
     " arg : [ value, short-name, default ]

@@ -9,6 +9,9 @@ let s:editLines = []
 " The actual file line starts after the line number offset
 let s:offset = 0
 
+" Cursor operations
+let s:cur = {}
+
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
@@ -16,7 +19,7 @@ let s:sub  = function('ags#pat#sub')
 
 " Clears undo history
 "
-function! s:clearUndo()
+function! s:clearUndoHistory()
     let prev = &undolevels
     set undolevels=-1
     exe "normal a \<Bs>\<Esc>"
@@ -104,10 +107,11 @@ function! s:changes()
             endif
 
             call add(changes[file], {
-                        \ 'fileLine' : s:dataMap[idx].row,
-                        \ 'fileData' : substitute(eline, nrpat, '',  ''),
-                        \ 'editLine' : idx,
-                        \ 'editData' : eline
+                        \ 'fileLine'     : s:dataMap[idx].row,
+                        \ 'fileData'     : substitute(eline, nrpat, '',  ''),
+                        \ 'fileDataPrev' : substitute(oline, nrpat, '',  ''),
+                        \ 'editLine'     : idx,
+                        \ 'editData'     : eline
                         \ })
         endif
 
@@ -125,6 +129,8 @@ function! ags#edit#write()
     let [ err, changes ] = s:changes()
     let fileCount        = 0
     let lineCount        = 0
+    let skipFileCount    = 0
+    let skipLineCount    = 0
 
     if err
         call ags#log#error('Original number of lines has changed. Write cancelled.')
@@ -132,16 +138,35 @@ function! ags#edit#write()
     endif
 
     for [file, change] in items(changes)
-        let lines = readfile(file, 'b')
-        let cnt   = 0
+        let lines   = readfile(file, 'b')
+        let cnt     = 0
+        let skipCnt = 0
+        let skip    = g:ags_edit_skip_if_file_changed
 
         for ch in change
             if ch.fileLine > 0
-                let lines[ch.fileLine - 1] = ch.fileData
-                let cnt = cnt + 1
+                if skip && lines[ch.fileLine - 1] !=# ch.fileDataPrev
+                    let skipCnt = skipCnt + 1
+
+                    let eline = getline(ch.editLine + 1)
+                    let npat  = '^.\{' . string(s:offset) . '}'
+                    let enum  = matchstr(eline,  npat)
+                    let nline = enum . lines[ch.fileLine - 1]
+
+                    let s:editLines[ch.editLine] = nline
+                    call setline(ch.editLine + 1, nline)
+                else
+                    let lines[ch.fileLine - 1] = ch.fileData
+                    let cnt = cnt + 1
+                    let s:editLines[ch.editLine] = ch.editData
+                endif
             endif
-            let s:editLines[ch.editLine] = ch.editData
         endfor
+
+        if skipCnt > 0
+            let skipFileCount = skipFileCount + 1
+            let skipLineCount = skipLineCount + skipCnt
+        endif
 
         if cnt > 0
             let fileCount = fileCount + 1
@@ -156,7 +181,18 @@ function! ags#edit#write()
         endif
     endfor
 
-    call ags#log#info('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
+    if lineCount == 0
+        call ags#log#info('All files up to date')
+    elseif skipLineCount == 0
+        call ags#log#info('Updated ' . lineCount . ' lines in ' . fileCount . ' files')
+    else
+        call ags#log#info(
+                    \ 'Updated ' .
+                    \ lineCount . ' lines in ' . fileCount . ' files. ' .
+                    \ 'Skipped ' .
+                    \ skipLineCount . ' lines in ' . skipFileCount . ' files.')
+    endif
+
     call ags#buf#focusResultsWindow()
     exec 'setlocal nomodified'
 endfunction
@@ -172,6 +208,7 @@ function! ags#edit#show()
     let lines       = s:processLinesForEdit(lines)
     let s:editLines = lines
     let s:offset    = s:calculateOffset(lines)
+    let s:cur       = ags#cur#make(s:offset, '^\s\{}\d\{}\s')
 
     if empty(lines)
         call ags#log#warn('There are no search results to edit')
@@ -180,46 +217,20 @@ function! ags#edit#show()
 
     call ags#buf#openEditResultsBuffer()
     call ags#buf#replaceLines(lines)
-    call s:clearUndo()
+    call s:clearUndoHistory()
     exec 'setlocal nomodified'
     exec 'normal 2Gw'
 endfunction
 
-function! s:changeCursorCol(col)
-    let pos = getpos('.')
-    let pos[2] = a:col
-    call setpos('.', pos)
+" Moves the cursor to the start of the file line
+"
+function! ags#edit#moveCursorToStart()
+    call s:cur.moveToStart()
 endfunction
 
-function! s:getCursorCol()
-    return getpos('.')[2]
-endfunction
-
-function! s:startInsert(insert, moveToStart)
-    if a:moveToStart
-        call s:changeCursorCol(1)
-    endif
-
-    if a:insert
-        exec 'startinsert'
-    endif
-endfunction
-
-function! ags#edit#moveCursorToLineStart(insert, moveToStart)
-    let line = getline('.')
-    if line =~ s:pat('^:file:') || line =~ '--'
-        call s:startInsert(a:insert, a:moveToStart)
-        return
-    endif
-
-    call s:changeCursorCol(s:offset + 1)
-    call s:startInsert(a:insert, 0)
-endfunction
-
-function! ags#edit#moveCursorFromNrLine(insert)
-    if s:getCursorCol() < s:offset + 1
-        call ags#edit#moveCursorToLineStart(a:insert, 0)
-    else
-        call s:startInsert(a:insert, 0)
-    endif
+" Moves the cursor to the start of the file line if it is outside of the
+" editable file line
+"
+function! ags#edit#moveCursorToStartIfOut(offset)
+    call s:cur.moveToStartIfOutside(a:offset)
 endfunction
