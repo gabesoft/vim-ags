@@ -145,22 +145,22 @@ function! ags#edit#write()
         let skip    = g:ags_edit_skip_if_file_changed
 
         for ch in change
-            if ch.fileLine > 0
-                if skip && lines[ch.fileLine - 1] !=# ch.fileDataPrev
-                    let skipCnt = skipCnt + 1
+            if ch.fileLine == 0 | continue | endif
 
-                    let eline = getline(ch.editLine + 1)
-                    let npat  = '^.\{' . string(s:offset) . '}'
-                    let enum  = matchstr(eline,  npat)
-                    let nline = enum . lines[ch.fileLine - 1]
+            if skip && lines[ch.fileLine - 1] !=# ch.fileDataPrev
+                let skipCnt = skipCnt + 1
 
-                    let s:editLines[ch.editLine] = nline
-                    call setline(ch.editLine + 1, nline)
-                else
-                    let lines[ch.fileLine - 1] = ch.fileData
-                    let cnt = cnt + 1
-                    let s:editLines[ch.editLine] = ch.editData
-                endif
+                let eline = getline(ch.editLine + 1)
+                let npat  = '^.\{' . string(s:offset) . '}'
+                let enum  = matchstr(eline,  npat)
+                let nline = enum . lines[ch.fileLine - 1]
+
+                let s:editLines[ch.editLine] = nline
+                call setline(ch.editLine + 1, nline)
+            else
+                let lines[ch.fileLine - 1] = ch.fileData
+                let cnt = cnt + 1
+                let s:editLines[ch.editLine] = ch.editData
             endif
         endfor
 
