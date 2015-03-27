@@ -37,10 +37,11 @@ function! s:processLinesForEdit(lines)
     let linePat        = s:pat('^:\lineStart:\([ 0-9]\{-1,}\):lineEnd:')
     let resultDelimPat = s:pat(':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:')
     let resultPat      = s:pat(':resultStart:\(.\{-1,}\):end:')
+    let lineSubst      = g:ags_edit_show_line_numbers ? '\1' : ''
 
     for line in a:lines
-        let line = substitute(line, lineColPat, '\1', '')
-        let line = substitute(line, linePat, '\1', '')
+        let line = substitute(line, lineColPat, lineSubst, '')
+        let line = substitute(line, linePat, lineSubst, '')
         let line = substitute(line, resultDelimPat, '\1', 'g')
         let line = substitute(line, resultPat, '\1', 'g')
         call add(lines, line)
