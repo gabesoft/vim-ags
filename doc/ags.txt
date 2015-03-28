@@ -1,63 +1,87 @@
 *ags.txt* Ag search plugin for Vim
 *Ags*
-                      
-=======================================================
-#                                                     #
-#               _____     ____  ______                #
-#              \__  \   / ___\/  ___/                 #
-#               / __ \_/ /_/  >___ \                  #
-#              (____  /\___  /____  >                 #
-#                   \//_____/     \/                  #
-#                                                     #
-======================================================= 
 
-CONTENTS                                 *ags-contents*
+=============================================================
+#                                                           #
+#                  _____     ____  ______                   #
+#                 \__  \   / ___\/  ___/                    #
+#                  / __ \_/ /_/  >___ \                     #
+#                 (____  /\___  /____  >                    #
+#                      \//_____/     \/                     #
+#                                                           #
+=============================================================
 
-    1. Intro.........................|ags-intro|
-    2. Options.......................|ags_options|
-    3. Commands......................|ags-commands|
-    4. Mappings......................|ags-mappings|
+CONTENTS                                       *ags-contents*
 
-======================================================= 
-INTRO                                       *ags-intro*
+    1. Intro.............................|ags-intro|
+    2. Options...........................|ags_options|
+    3. Commands..........................|ags-commands|
+    4. Mappings..........................|ags-mappings|
+    5. Limitations.......................|ags-limitations|
 
-Ags is a plugin that allows accessing the search 
+=============================================================
+INTRO                                             *ags-intro*
+
+Ags is a plugin that allows accessing the search
 functionality of the silver searcher (AG) from Vim.
 It focuses on displaying the search results in a clear
-format and provides several key mappings for easy 
-navigation through them.
+format and provides several key mappings for easy
+navigation through them. In addition there is an edit
+mode that allows for search and replace in multiple
+files.
 
-======================================================= 
-OPTIONS                                   *ags-options*
+=============================================================
+OPTIONS                                         *ags-options*
 
-|loaded_ags|...................Disable the plugin
-|ags_agexe|....................The ag executable path
-|ags_agmaxcount|...............The --max-count ag param
-|ags_agcontext|................The --context ag param
-|ags_agargs|...................The predefined ag args
+|ags_loaded|.....................Disable the plugin
+|ags_agexe|......................The ag executable path
+|ags_agmaxcount|.................The --max-count ag param
+|ags_agcontext|..................The --context ag param
+|ags_agargs|.....................The predefined ag args
+|ags_edit_show_line_numbers|.....Show line numbers in edit mode
+|ags_edit_skip_if_file_changed|..In edit mode skip write of any
+                               lines that changed outside vim
 
-------------------------------------------------------- 
+-------------------------------------------------------------
 Detailed options:~
 
-                                            *ags_agexe*
+                                                  *ags_agexe*
 This is the ag executable path >
-    let g:ags_agexe = '/usr/local/bin/ag'
+    let g:ags_agexe = 'ag'
 <
 
-                                       *ags_agmaxcount*
+                                             *ags_agmaxcount*
 This is the max-count parameter to be passed to ag >
     let g:ags_agmaxcount = 2000
 <
 
-                                        *ags_agcontext*
+                                              *ags_agcontext*
 This is the context parameter to be passed to ag >
     let g:ags_agcontext = 3
+<
+
+                                 *ags_edit_show_line_numbers*
+This enables showing file line numbers in edit mode as visual
+cues. The file numbers as well as file paths in edit mode are
+not meant to be edited and could result in unwanted changes if
+removed
+    let g:ags_edit_show_line_numbers = 0
+<
+
+                              *ags_edit_skip_if_file_changed*
+When writing files from edit mode this allows to skip writing
+lines that have changed from outside vim. This could have
+mixed results as some lines will be changed and others not.
+However, the search results window will be updated with the
+file lines exactly as they appear in the file.
+    let g:ags_edit_skip_if_file_changed = 0
 <
 
                                            *ags_agargs*
 This variable contains the predefined search arguments
 used to ensure that the search results are highlighted
-properly in Vim. >
+properly in Vim. Any of these arguments can be overwritten
+when entering the search command.
     let g:ags_agargs = {
                 \ '--break'             : [ '', '' ],
                 \ '--color'             : [ '', '' ],
@@ -74,33 +98,45 @@ properly in Vim. >
                 \ }
 <
 
-======================================================= 
-COMMANDS                                 *ags-commands*
+=============================================================
+COMMANDS                                       *ags-commands*
 
                                                  *:Ags*
 :Ags [{file-type}] [{options}] {pattern} [{directory}]
 
-    Runs a recursive search in {directory} for 
-    {pattern}. If {pattern} is not specified it 
-    will be set to the word under cursor. The 
+    Runs a recursive search in {directory} for
+    {pattern}. If {pattern} is not specified it
+    will be set to the word under cursor. The
     {directory} will default to the current directory.
-    {options} and {file-type} are passed directly to 
+    {options} and {file-type} are passed directly to
     the ag executable, except for --max-count and
-    --context which should be specified via 
+    --context which should be specified via
     |ags_agmaxcount| and |ags_agcontext| and a few
     other display related arguments such as
-    --color-line-number, --color-match, and 
-    --color-path which are set by the plugin for 
+    --color-line-number, --color-match, and
+    --color-path which are set by the plugin for
     display purposes.
 
-                                              *:AgsAdd*
+                                               *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
-    
+
     Like |:Ags| but the matches are appended to the
     current search results.
 
-======================================================= 
-MAPPINGS                                 *ags-mappings*
+                                              *:AgsQuit*
+:AgsQuit
+
+    Closes the search results window whether in edit or
+    view mode.
+
+                                 *:AgsEditSearchResults*
+:AgsEditSearchResults
+
+    Enters edit mode is the search results is open in
+    view mode.
+
+=============================================================
+MAPPINGS                                       *ags-mappings*
 
 Once inside the search results window:~
 
@@ -110,6 +146,7 @@ Once inside the search results window:~
     R    - navigate results backwards
     a    - display the file path for current results
     c    - copy to clipboard the file path for current results
+    E    - enter edit mode
 
     oa   - open file above the results window
     ob   - open file below the results window
@@ -117,10 +154,26 @@ Once inside the search results window:~
     or   - open file to the right of the results window
     os   - open file in the results window
     ou   - open file in a previously opened window
+    xu   - open file in a previously opened window and close the search results
     <CR> - open file in a previously opened window
 
     q    - close the search results window
     u    - displays these key mappings
 
-=======================================================
+=============================================================
+LIMITATIONS                                 *ags-limitations*
+
+Performing a search could be slow if the search returns too many
+lines. To improve performance in such cases set the context argument to 0 or 1.
+
+For example
+:Ags -C 0 search-pattern
+
+The default is 3 and can be also overwritten via |g:ags_agcontext| setting.
+
+In edit mode lines can be changed but no lines can be added or removed.
+Also entering edit mode may lag if there are too many lines in the
+search results window. The context argument mentioned above will help here as well.
+
+=============================================================
 vim:ft=help:et
