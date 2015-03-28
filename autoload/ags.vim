@@ -63,7 +63,7 @@ function! s:show(lines, ...)
     let obj = { 'add': a:0 && a:1, 'lines': a:lines }
 
     function obj.run()
-        if self.add
+        if self.add && line('$') > 1
             call append('$', self.lines)
         else
             call ags#buf#replaceLines(self.lines)

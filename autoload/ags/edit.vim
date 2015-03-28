@@ -9,6 +9,10 @@ let s:editLines = []
 " The actual file line starts after the line number offset
 let s:offset = 0
 
+" Line number offset pattern
+" Used to remove the line numbers from the file line
+let s:offsetPat = '^'
+
 " Cursor operations
 let s:cur = {}
 
