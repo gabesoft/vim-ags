@@ -33,7 +33,9 @@ if !exists('g:ags_agargs')
                 \ }
 endif
 
-command! -nargs=* -complete=file Ags    call ags#search(<q-args>, 0)
-command! -nargs=* -complete=file AgsAdd call ags#search(<q-args>, 1)
+command! -nargs=* -complete=file Ags    call ags#search(<q-args>, '')
+command! -nargs=* -complete=file AgsAdd call ags#search(<q-args>, 'add')
+command! -nargs=0 AgsLast               call ags#search(<q-args>, 'last')
 command! -nargs=0 AgsEditSearchResults  call ags#edit#show()
 command! -nargs=0 AgsQuit               call ags#quit()
+command! -nargs=0 AgsShowLastCommand    call ags#run#getLastCmd()

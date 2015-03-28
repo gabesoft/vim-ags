@@ -4,6 +4,9 @@ let s:exe  = 'ag'
 " Last command
 let s:last = ''
 
+" Last args
+let s:lastArgs = ''
+
 function! s:remove(args, name)
     return substitute(a:args, '\s\{}' . a:name . '\(=\S\{}\)\?', '', 'g')
 endfunction
@@ -43,11 +46,24 @@ endfunction
 " Runs an ag search with the given {args}
 "
 function! ags#run#ag(args)
+    let s:lastArgs = a:args
     return system(s:cmd(a:args))
 endfunction
 
-" Returns the last ag command executed
+" Runs the last ag search
+"
+function! ags#run#runLastCmd()
+    return ags#run#ag(s:lastArgs)
+endfunction
+
+" Returns true if an ag search has been performed
+"
+function! ags#run#hasLastCmd()
+    return !empty(s:lastArgs)
+endfunction
+
+" Displays the last ag command executed
 "
 function! ags#run#getLastCmd()
-    return s:last
+    echom s:last
 endfunction

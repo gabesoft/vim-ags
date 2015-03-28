@@ -10,9 +10,6 @@ let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
 let s:sub  = function('ags#pat#sub')
 
-" Run search
-let s:run = function('ags#run#ag')
-
 " Search results usage
 let s:usage = [
             \ ' Search Results Key Bindings',
@@ -128,18 +125,32 @@ function! s:resultPosition(lineNo)
     return [0, row, col, 0]
 endfunction
 
-" Performs a search with the specified {args}. If {add} is true
-" the results will be added to the search results window; otherwise,
-" they will replace any previous results.
+" Performs a search with the specified {args} and according to {cmd}.
 "
-function! ags#search(args, add)
-    let args  = empty(a:args) ? expand('<cword>') : a:args
-    let data  = s:run(args)
+" {cmd|add}  the new results will be added to previous results in the search window
+" {cmd|last} ignores {args} and runs the last search
+"
+function! ags#search(args, cmd)
+    let last  = a:cmd ==# 'last'
+    let add   = a:cmd ==# 'add'
+
+    if last && !ags#run#hasLastCmd()
+        call ags#log#warn("There is no previous search")
+        return
+    elseif last
+        let data = ags#run#runLastCmd()
+    else
+        let args  = empty(a:args) ? expand('<cword>') : a:args
+        let data  = ags#run#ag(args)
+    endif
+
     let lines = s:processSearchData(data)
     if empty(lines)
         call ags#log#warn("No matches for " . string(a:args))
+    elseif len(lines) == 1
+        call ags#log#warn(lines[0])
     else
-        call s:show(lines, a:add)
+        call s:show(lines, add)
     endif
 endfunction
 

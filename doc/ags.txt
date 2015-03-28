@@ -14,6 +14,7 @@
 CONTENTS                                       *ags-contents*
 
     1. Intro.............................|ags-intro|
+    2. EditMode..........................|ags-edit-mode|
     2. Options...........................|ags_options|
     3. Commands..........................|ags-commands|
     4. Mappings..........................|ags-mappings|
@@ -29,6 +30,18 @@ format and provides several key mappings for easy
 navigation through them. In addition there is an edit
 mode that allows for search and replace in multiple
 files.
+
+=============================================================
+EDIT MODE                                     *ags-edit-mode*
+
+The edit mode can be triggered by pressing E in the search
+window after running a search, or by invoking the
+|:AgsEditSearchResults| command. This will make the results
+window editable and can be used for example to do a search
+and replace in multiple files. Writing the search
+buffer will cause the changes to be written to files. To undo
+any changes first undo them in the search window and then
+write the search buffer again.
 
 =============================================================
 OPTIONS                                         *ags-options*
@@ -101,7 +114,7 @@ when entering the search command.
 =============================================================
 COMMANDS                                       *ags-commands*
 
-                                                 *:Ags*
+                                                  *:Ags*
 :Ags [{file-type}] [{options}] {pattern} [{directory}]
 
     Runs a recursive search in {directory} for
@@ -109,19 +122,19 @@ COMMANDS                                       *ags-commands*
     will be set to the word under cursor. The
     {directory} will default to the current directory.
     {options} and {file-type} are passed directly to
-    the ag executable, except for --max-count and
-    --context which should be specified via
-    |ags_agmaxcount| and |ags_agcontext| and a few
-    other display related arguments such as
-    --color-line-number, --color-match, and
-    --color-path which are set by the plugin for
-    display purposes.
+    the ag executable. In addition a few other options,
+    as set in |ags_agargs|, will be specified for display purposes.
 
                                                *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
 
     Like |:Ags| but the matches are appended to the
     current search results.
+
+                                              *:AgsLast*
+:AgsLast
+    Runs the last search. This could be used after entering
+    edit mode to return to view mode.
 
                                               *:AgsQuit*
 :AgsQuit
@@ -134,6 +147,11 @@ COMMANDS                                       *ags-commands*
 
     Enters edit mode is the search results is open in
     view mode.
+
+                                   *:AgsShowLastCommand*
+:AgsShowLastCommand
+
+    Displays the command for the last search.
 
 =============================================================
 MAPPINGS                                       *ags-mappings*
@@ -169,11 +187,11 @@ lines. To improve performance in such cases set the context argument to 0 or 1.
 For example
 :Ags -C 0 search-pattern
 
-The default is 3 and can be also overwritten via |g:ags_agcontext| setting.
+The default is 3 and can be overwritten via |g:ags_agcontext| setting.
 
 In edit mode lines can be changed but no lines can be added or removed.
 Also entering edit mode may lag if there are too many lines in the
 search results window. The context argument mentioned above will help here as well.
 
 =============================================================
-vim:ft=help:et
+vim:tw=78:et:ft=help:norl:
