@@ -14,9 +14,10 @@ function! s:incCursorCol(offset)
     call s:setCursorCol(s:getCursorCol() + a:offset)
 endfunction
 
-function! s:CUR.New(offset, lineNumberPat)
-    let curObj = copy(self)
-    let curObj.offset = a:offset
+function! s:CUR.New(offset, offsetPat, lineNumberPat)
+    let curObj               = copy(self)
+    let curObj.offsetPat     = a:offsetPat
+    let curObj.offset        = a:offset
     let curObj.lineNumberPat = a:lineNumberPat
     return curObj
 endfunction
@@ -34,8 +35,7 @@ endfunction
 function! s:CUR.moveToStart()
     if self.isLineNumber()
         let line   = getline('.')
-        let lpat   = '^.\{' . string(self.offset) . '}'
-        let line   = substitute(line, lpat, '', '')
+        let line   = substitute(line, self.offsetPat, '', '')
         let spaces = len(matchstr(line,  '^\s\{}'))
 
         call s:setCursorCol(self.offset + spaces + 1)
@@ -56,6 +56,6 @@ endfunction
 
 " Creates a cursor object
 "
-function! ags#cur#make(offset, lineNumberPat)
-    return s:CUR.New(a:offset, a:lineNumberPat)
+function! ags#cur#make(offset, offsetPat, lineNumberPat)
+    return s:CUR.New(a:offset, a:offsetPat, a:lineNumberPat)
 endfunction

@@ -50,6 +50,9 @@ function! s:processLinesForEdit(lines)
     return lines
 endfunction
 
+" Calculates the offset from the begining of the edit line to the file line.
+" This is the same as the number line width.
+"
 function! s:calculateOffset(lines)
     return len(a:lines) < 2 ? 0 : strlen(matchstr(a:lines[1], '^\s\{}\d\{}\s'))
 endfunction
@@ -98,7 +101,6 @@ function! s:changes()
     while idx < len(olines)
         let eline = elines[idx]
         let oline = olines[idx]
-        let nrpat = '^.\{' . string(s:offset) . '}'
 
         if eline !=# oline
             let file = s:dataMap[idx].file
@@ -109,8 +111,8 @@ function! s:changes()
 
             call add(changes[file], {
                         \ 'fileLine'     : s:dataMap[idx].row,
-                        \ 'fileData'     : substitute(eline, nrpat, '',  ''),
-                        \ 'fileDataPrev' : substitute(oline, nrpat, '',  ''),
+                        \ 'fileData'     : substitute(eline, s:offsetPat, '',  ''),
+                        \ 'fileDataPrev' : substitute(oline, s:offsetPat, '',  ''),
                         \ 'editLine'     : idx,
                         \ 'editData'     : eline
                         \ })
@@ -125,42 +127,41 @@ endfunction
 " Writes the search results window changes to their corresponding files
 "
 function! ags#edit#write()
-    let olines           = s:editLines
-    let elines           = ags#buf#readEditResultsBuffer()
-    let [ err, changes ] = s:changes()
-    let fileCount        = 0
-    let lineCount        = 0
-    let skipFileCount    = 0
-    let skipLineCount    = 0
+    let olines              = s:editLines
+    let elines              = ags#buf#readEditResultsBuffer()
+    let [ err, allChanges ] = s:changes()
+    let fileCount           = 0
+    let lineCount           = 0
+    let skipFileCount       = 0
+    let skipLineCount       = 0
 
     if err
         call ags#log#error('Original number of lines has changed. Write cancelled.')
         return
     endif
 
-    for [file, change] in items(changes)
+    for [file, fileChanges] in items(allChanges)
         let lines   = readfile(file, 'b')
         let cnt     = 0
         let skipCnt = 0
         let skip    = g:ags_edit_skip_if_file_changed
 
-        for ch in change
-            if ch.fileLine == 0 | continue | endif
+        for change in fileChanges
+            if change.fileLine == 0 | continue | endif
 
-            if skip && lines[ch.fileLine - 1] !=# ch.fileDataPrev
+            if skip && lines[change.fileLine - 1] !=# change.fileDataPrev
                 let skipCnt = skipCnt + 1
 
-                let eline = getline(ch.editLine + 1)
-                let npat  = '^.\{' . string(s:offset) . '}'
-                let enum  = matchstr(eline,  npat)
-                let nline = enum . lines[ch.fileLine - 1]
+                let eline = getline(change.editLine + 1)
+                let enum  = matchstr(eline,  s:offsetPat)
+                let nline = enum . lines[change.fileLine - 1]
 
-                let s:editLines[ch.editLine] = nline
-                call setline(ch.editLine + 1, nline)
+                let s:editLines[change.editLine] = nline
+                call setline(change.editLine + 1, nline)
             else
-                let lines[ch.fileLine - 1] = ch.fileData
+                let lines[change.fileLine - 1] = change.fileData
                 let cnt = cnt + 1
-                let s:editLines[ch.editLine] = ch.editData
+                let s:editLines[change.editLine] = change.editData
             endif
         endfor
 
@@ -208,8 +209,10 @@ function! ags#edit#show()
 
     let lines       = s:processLinesForEdit(lines)
     let s:editLines = lines
+
     let s:offset    = s:calculateOffset(lines)
-    let s:cur       = ags#cur#make(s:offset, '^\s\{}\d\{}\s')
+    let s:offsetPat = '^.\{' . string(s:offset) . '}'
+    let s:cur       = ags#cur#make(s:offset, s:offsetPat, '^\s\{}\d\{}\s')
 
     if empty(lines)
         call ags#log#warn('There are no search results to edit')
