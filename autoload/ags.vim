@@ -131,8 +131,8 @@ endfunction
 " {cmd|last} ignores {args} and runs the last search
 "
 function! ags#search(args, cmd)
-    let last  = a:cmd ==# 'last'
-    let add   = a:cmd ==# 'add'
+    let last = a:cmd ==# 'last'
+    let add  = a:cmd ==# 'add'
 
     if last && !ags#run#hasLastCmd()
         call ags#log#warn("There is no previous search")
