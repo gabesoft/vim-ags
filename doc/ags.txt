@@ -145,7 +145,7 @@ COMMANDS                                       *ags-commands*
                                  *:AgsEditSearchResults*
 :AgsEditSearchResults
 
-    Enters edit mode is the search results is open in
+    Enters edit mode if the search results is open in
     view mode.
 
                                    *:AgsShowLastCommand*
