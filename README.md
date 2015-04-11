@@ -30,3 +30,5 @@ Here are a couple of screenshots of the search results window
 
 ### Similar Plugins
 [ag.vim](https://github.com/rking/ag.vim)
+[epmatsw/ag.vim](https://github.com/epmatsw/ag.vim)
+[ervandew/ag](https://github.com/ervandew/ag)
