@@ -113,11 +113,11 @@ when entering the search command.
                 \ '--color-match'       : [ '"32;40"', '' ],
                 \ '--color-path'        : [ '"1;31"', '' ],
                 \ '--column'            : [ '', '' ],
-                \ '--context'           : [ 'g:ags_agcontext', '-C', '3' ],
+                \ '--context'           : [ 'g:ags_agcontext', '-C' ],
                 \ '--filename'          : [ '', '' ],
                 \ '--group'             : [ '', '' ],
                 \ '--heading'           : [ '', '-H' ],
-                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m', '2000' ],
+                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m' ],
                 \ '--numbers'           : [ '', '' ]
                 \ }
 <

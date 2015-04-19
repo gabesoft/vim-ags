@@ -5,6 +5,9 @@ let s:hlpos = []
 " Last copied value
 let s:lastCopy = ''
 
+" Search results statistics
+let s:stats = {}
+
 " Regex pattern functions
 let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
@@ -163,10 +166,11 @@ endfunction
 function! s:printStats(r, f, t)
     if empty(s:stats) | return | endif
 
-    let result = s:stats.data[line('.')].result
-    let file = s:stats.data[line('.')].file
+    let lnum      = line('.')
+    let result    = s:stats.data[lnum].result
+    let file      = s:stats.data[lnum].file
     let resultMsg = 'Result ' . result . '/' . s:stats.results . ' '
-    let fileMsg = 'File ' . file . '/' . s:stats.files
+    let fileMsg   = 'File ' . file . '/' . s:stats.files
 
     if a:r
         echohl None
