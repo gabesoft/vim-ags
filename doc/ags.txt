@@ -50,6 +50,8 @@ OPTIONS                                         *ags-options*
 |ags_agexe|......................The ag executable path
 |ags_agmaxcount|.................The --max-count ag param
 |ags_agcontext|..................The --context ag param
+|ags_stats_max_ln|...............The maximum number of lines
+                               before disabling statistics
 |ags_agargs|.....................The predefined ag args
 |ags_edit_show_line_numbers|.....Show line numbers in edit mode
 |ags_edit_skip_if_file_changed|..In edit mode skip write of any
@@ -58,30 +60,39 @@ OPTIONS                                         *ags-options*
 -------------------------------------------------------------
 Detailed options:~
 
-                                                  *ags_agexe*
+                                                    *ags_agexe*
 This is the ag executable path >
     let g:ags_agexe = 'ag'
 <
 
-                                             *ags_agmaxcount*
+                                               *ags_agmaxcount*
 This is the max-count parameter to be passed to ag >
     let g:ags_agmaxcount = 2000
 <
 
-                                              *ags_agcontext*
+                                                *ags_agcontext*
 This is the context parameter to be passed to ag >
     let g:ags_agcontext = 3
 <
 
-                                 *ags_edit_show_line_numbers*
+                                             *ags_stats_max_ln*
+This is the maximum number of lines before disabling the
+statistics info that shows when navigating results in the
+search results window. When the number of lines returned by
+ag is larger than the value of this variable the statistics
+are disabled to improve performance.
+    let g:ags_stats_max_ln = 5000
+<
+
+                                   *ags_edit_show_line_numbers*
 This enables showing file line numbers in edit mode as visual
 cues. The file numbers as well as file paths in edit mode are
 not meant to be edited and could result in unwanted changes if
-removed
+removed.
     let g:ags_edit_show_line_numbers = 0
 <
 
-                              *ags_edit_skip_if_file_changed*
+                                *ags_edit_skip_if_file_changed*
 When writing files from edit mode this allows to skip writing
 lines that have changed from outside vim. This could have
 mixed results as some lines will be changed and others not.
@@ -90,7 +101,7 @@ file lines exactly as they appear in the file.
     let g:ags_edit_skip_if_file_changed = 0
 <
 
-                                           *ags_agargs*
+                                                   *ags_agargs*
 This variable contains the predefined search arguments
 used to ensure that the search results are highlighted
 properly in Vim. Any of these arguments can be overwritten

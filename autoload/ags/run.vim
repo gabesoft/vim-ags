@@ -30,7 +30,7 @@ function! s:cmd(args)
 
         if value =~ '^g:'
             let value = substitute(value, '^g:', '', '')
-            let value = has_key(g:, value) ? g:[value] : arg[2]
+            let value = get(g:, value, 0)
         endif
 
         let op   = strlen(value) == 0 ? '' : '='

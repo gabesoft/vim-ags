@@ -2,21 +2,16 @@ if exists('g:ags_loaded') || &cp || v:version < 700 | finish | endif
 
 let g:ags_loaded = 1
 
-if !exists('g:ags_agexe')      | let g:ags_agexe = 'ag'      | endif
-if !exists('g:ags_agmaxcount') | let g:ags_agmaxcount = 2000 | endif
-if !exists('g:ags_agcontext')  | let g:ags_agcontext = 3     | endif
-
-if !exists('g:ags_edit_skip_if_file_changed')
-    let g:ags_edit_skip_if_file_changed = 0
-endif
-
-if !exists('g:ags_edit_show_line_numbers')
-    let g:ags_edit_show_line_numbers = 0
-endif
+let g:ags_agexe                     = get(g:, 'ags_agexe', 'ag')
+let g:ags_agmaxcount                = get(g:, 'ags_agmaxcount', 2000)
+let g:ags_agcontext                 = get(g:, 'ags_agcontext', 3)
+let g:ags_stats_max_ln              = get(g:, 'ags_stats_max_ln', 5000)
+let g:ags_edit_skip_if_file_changed = get(g:, 'ags_edit_skip_if_file_changed', 0)
+let g:ags_edit_show_line_numbers    = get(g:, 'ags_edit_show_line_numbers', 0)
 
 if !exists('g:ags_agargs')
     " Predefined search arguments
-    " arg : [ value, short-name, default ]
+    " arg : [ value, short-name ]
     let g:ags_agargs = {
                 \ '--break'             : [ '', '' ],
                 \ '--color'             : [ '', '' ],
@@ -24,11 +19,11 @@ if !exists('g:ags_agargs')
                 \ '--color-match'       : [ '"32;40"', '' ],
                 \ '--color-path'        : [ '"1;31"', '' ],
                 \ '--column'            : [ '', '' ],
-                \ '--context'           : [ 'g:ags_agcontext', '-C', '3' ],
+                \ '--context'           : [ 'g:ags_agcontext', '-C' ],
                 \ '--filename'          : [ '', '' ],
                 \ '--group'             : [ '', '' ],
                 \ '--heading'           : [ '', '-H' ],
-                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m', '2000' ],
+                \ '--max-count'         : [ 'g:ags_agmaxcount', '-m' ],
                 \ '--numbers'           : [ '', '' ]
                 \ }
 endif

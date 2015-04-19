@@ -72,6 +72,7 @@ function! s:show(lines, ...)
 
     call ags#buf#openViewResultsBuffer()
     call s:execw(obj)
+    call s:printStats(0, 0, 1)
 endfunction
 
 " Prepares the search {data} for display
@@ -101,6 +102,35 @@ function! s:processSearchData(data)
     return results
 endfunction
 
+" Gathers statistics about the search results from {lines}
+"
+function! s:gatherStatistics(lines)
+    if len(a:lines) > g:ags_stats_max_ln | return {} | endif
+
+    let stats       = {}
+    let resultPat   = s:pat('^:lineStart:\s\{}\d\{1,}\s\{}:lineColEnd:')
+    let filePat     = s:pat('^:file:$')
+    let resultCount = 0
+    let fileCount   = 0
+    let index       = 0
+    let llines      = len(a:lines)
+
+    while index < llines
+        let line = a:lines[index]
+
+        if line =~ filePat
+            let fileCount = fileCount + 1
+        elseif line =~ resultPat
+            let resultCount = resultCount + 1
+        endif
+
+        let index = index + 1
+        let stats[index] = { 'file': fileCount, 'result': resultCount }
+    endw
+
+    return { 'data': stats, 'files': fileCount, 'results': resultCount }
+endfunction
+
 " Returns the cursor position when opening a file
 " from the {lineNo} in the search results window
 "
@@ -125,6 +155,41 @@ function! s:resultPosition(lineNo)
     return [0, row, col, 0]
 endfunction
 
+" Prints search results statistics
+"
+" {r} - print result info
+" {f} - print file info
+" {t} - print totals info
+function! s:printStats(r, f, t)
+    if empty(s:stats) | return | endif
+
+    let result = s:stats.data[line('.')].result
+    let file = s:stats.data[line('.')].file
+    let resultMsg = 'Result ' . result . '/' . s:stats.results . ' '
+    let fileMsg = 'File ' . file . '/' . s:stats.files
+
+    if a:r
+        echohl None
+        redraw | echon resultMsg
+    endif
+
+    if !a:r
+        redraw
+    endif
+
+    if a:f
+        echohl MoreMsg
+        echon fileMsg
+    endif
+
+    if a:t
+        echohl Underlined
+        redraw | echom s:stats.results . ' results found in ' . s:stats.files . ' files'
+    endif
+
+    echohl None
+endfunction
+
 " Performs a search with the specified {args} and according to {cmd}.
 "
 " {cmd|add}  the new results will be added to previous results in the search window
@@ -144,7 +209,8 @@ function! ags#search(args, cmd)
         let data  = ags#run#ag(args)
     endif
 
-    let lines = s:processSearchData(data)
+    let lines   = s:processSearchData(data)
+    let s:stats = s:gatherStatistics(lines)
     if empty(lines)
         call ags#log#warn("No matches for " . string(a:args))
     elseif len(lines) == 1
@@ -291,6 +357,7 @@ function! ags#navigateResults(...)
     call setpos('.', pos)
 
     let s:hlpos = pos
+    call s:printStats(1, 1, 0)
 endfunction
 
 " Navigates the search results file paths
@@ -302,6 +369,7 @@ function! ags#navigateResultsFiles(...)
     let file = s:pat(':file:')
     call search(file, flags)
     exec 'normal zt'
+    call s:printStats(0, 1, 0)
 endfunction
 
 function! ags#quit()
