@@ -22,8 +22,8 @@ Works with ag version >= 0.29.1
 ### Screenshots  
 Here are a couple of screenshots of the search results window
 
-#### View mode  
-<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot1.png" />
+#### View mode (with [lightline](https://github.com/itchyny/lightline.vim) integration)
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot4.png" />
 
 #### Edit mode  
 <img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot3-edit-mode.png" />
