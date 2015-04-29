@@ -28,6 +28,20 @@ function! s:valEsc(name)
     return has_key(s:, a:name) ? s:esc(s:[a:name]) : a:name
 endfunction
 
+function! ags#pat#matchCount(expr, pat, index)
+    if strlen(a:expr) == 0 | return 0 | endif
+
+    let cnt = 0
+    let idx = a:index
+
+    while match(a:expr, a:pat, idx) > -1 && idx < strlen(a:expr)
+        let cnt = cnt + 1
+        let idx = match(a:expr, a:pat, idx) + strlen(matchstr(a:expr, a:pat, idx))
+    endw
+
+    return cnt
+endfunction
+
 function! ags#pat#mkpat(...)
     let key = ''
 

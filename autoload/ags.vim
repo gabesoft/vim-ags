@@ -13,6 +13,13 @@ let s:pat  = function('ags#pat#mkpat')
 let s:gsub = function('ags#pat#gsub')
 let s:sub  = function('ags#pat#sub')
 
+" Regex patterns cache
+let s:patt = {
+            \ 'result' : s:pat(':resultStart:\%(.\{-1,}\):end:'),
+            \ 'lineNo' : s:pat('^:lineStart:\(\d\{1,}\)'),
+            \ 'file'   : s:pat('^:file:$')
+            \ }
+
 " Search results usage
 let s:usage = [
             \ ' Search Results Key Bindings',
@@ -84,20 +91,19 @@ function! s:processSearchData(data)
     let data    = substitute(a:data, '\e', '', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 0
-    let lineNo  = s:pat('^:lineStart:\(\d\{1,}\)')
 
     for line in lines
-        let lmatch  = matchstr(line, lineNo)
+        let lmatch  = matchstr(line, s:patt.lineNo)
         let lmaxlen = max([ strlen(lmatch), lmaxlen ])
     endfor
 
     let results = []
     for line in lines
-        let llen = strlen(matchstr(line, lineNo))
+        let llen = strlen(matchstr(line, s:patt.lineNo))
         let wlen = lmaxlen - llen
 
         " right justify line numbers and add a space after
-        let line = s:sub(line, lineNo, ':lineStart:' . repeat(' ', wlen) . '\1 ')
+        let line = s:sub(line, s:patt.lineNo, ':lineStart:' . repeat(' ', wlen) . '\1 ')
 
         call add(results, line)
     endfor
@@ -110,28 +116,31 @@ endfunction
 function! s:gatherStatistics(lines)
     if len(a:lines) > g:ags_stats_max_ln | return {} | endif
 
-    let stats       = {}
-    let resultPat   = s:pat('^:lineStart:\s\{}\d\{1,}\s\{}:lineColEnd:')
-    let filePat     = s:pat('^:file:$')
-    let resultCount = 0
-    let fileCount   = 0
-    let index       = 0
-    let llines      = len(a:lines)
+    let stats      = {}
+    let resultPat  = s:patt.result
+    let filePat    = s:patt.file
+    let totalCount = 0
+    let fileCount  = 0
+    let index      = 0
+    let llines     = len(a:lines)
 
     while index < llines
-        let line = a:lines[index]
+        let line      = a:lines[index]
+        let currCount = 0
 
         if line =~ filePat
             let fileCount = fileCount + 1
         elseif line =~ resultPat
-            let resultCount = resultCount + 1
+            let occurences = ags#pat#matchCount(line, resultPat, 0)
+            let totalCount = totalCount + occurences
+            let currCount  = currCount + occurences
         endif
 
         let index = index + 1
-        let stats[index] = { 'file': fileCount, 'result': resultCount }
+        let stats[index] = { 'file': fileCount, 'result': totalCount, 'matches': currCount }
     endw
 
-    return { 'data': stats, 'files': fileCount, 'results': resultCount }
+    return { 'data': stats, 'files': fileCount, 'results': totalCount }
 endfunction
 
 " Returns the cursor position when opening a file
@@ -141,7 +150,7 @@ function! s:resultPosition(lineNo)
     let line = getline(a:lineNo)
     let col  = 0
 
-    if line =~ s:pat(':file:')
+    if line =~ s:patt.file
         let line = getline(a:lineNo + 1)
     endif
 
@@ -158,23 +167,45 @@ function! s:resultPosition(lineNo)
     return [0, row, col, 0]
 endfunction
 
+" Gets results statistics for the current cursor position
+"
+function! s:getCurrentStats()
+    if empty(s:stats) | return {} | endif
+    if !has_key(s:stats.data, line('.')) | return {} | endif
+
+    let lnum     = line('.')
+    let file     = s:stats.data[lnum].file
+    let lmatches = s:stats.data[lnum].matches
+    let fileMsg  = 'File(' . file . '/' . s:stats.files . ')'
+
+    if lmatches <= 1
+        let result = s:stats.data[lnum].result
+    else
+        let line      = getline('.')
+        let remaining = ags#pat#matchCount(getline('.'),  s:patt.result, col('.') - 1)
+        let result    = s:stats.data[lnum].result - remaining + 1
+    endif
+
+    let resultMsg = 'Result(' . result . '/' . s:stats.results . ')'
+
+    return { 'file': fileMsg, 'result': resultMsg }
+endfunction
+
 " Prints search results statistics
 "
 " {r} - print result info
 " {f} - print file info
 " {t} - print totals info
 function! s:printStats(r, f, t)
-    if empty(s:stats) | return | endif
+    if g:ags_no_stats | return | endif
 
-    let lnum      = line('.')
-    let result    = s:stats.data[lnum].result
-    let file      = s:stats.data[lnum].file
-    let resultMsg = 'Result ' . result . '/' . s:stats.results . ' '
-    let fileMsg   = 'File ' . file . '/' . s:stats.files
+    let msg = s:getCurrentStats()
+
+    if empty(msg) | return | endif
 
     if a:r
         echohl None
-        redraw | echon resultMsg
+        redraw | echon msg.result . ' '
     endif
 
     if !a:r
@@ -183,7 +214,7 @@ function! s:printStats(r, f, t)
 
     if a:f
         echohl MoreMsg
-        echon fileMsg
+        echon msg.file
     endif
 
     if a:t
@@ -192,6 +223,14 @@ function! s:printStats(r, f, t)
     endif
 
     echohl None
+endfunction
+
+" Returns a string that could be used in the status line to indicate
+" the current cursor position within the search results
+"
+function! ags#get_status_string()
+    let msg = s:getCurrentStats()
+    return empty(msg) ? '' : msg.result . ' | ' . msg.file
 endfunction
 
 " Performs a search with the specified {args} and according to {cmd}.
@@ -230,7 +269,7 @@ endfunction
 function! ags#filePath(lineNo)
     let nr = a:lineNo
 
-    while nr >= 0 && getline(nr) !~ s:pat(':file:')
+    while nr >= 0 && getline(nr) !~ s:patt.file
         let nr = nr - 1
     endw
 
@@ -330,7 +369,7 @@ endfunction
 "
 function! ags#navigateResultsOnLine()
     let line = getline('.')
-    let result = s:pat(':resultStart:.\{-}:end:')
+    let result = s:patt.result
     if line =~ result
         let [bufnum, lnum, col, off] = getpos('.')
         call setpos('.', [bufnum, lnum, 0, off])
@@ -370,7 +409,7 @@ endfunction
 function! ags#navigateResultsFiles(...)
     call ags#clearHlResult()
     let flags = a:0 > 0 ? a:1 : 'w'
-    let file = s:pat(':file:')
+    let file = s:patt.file
     call search(file, flags)
     exec 'normal zt'
     call s:printStats(0, 1, 0)

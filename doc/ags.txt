@@ -50,6 +50,8 @@ OPTIONS                                         *ags-options*
 |ags_agexe|......................The ag executable path
 |ags_agmaxcount|.................The --max-count ag param
 |ags_agcontext|..................The --context ag param
+|ags_no_stats|...................Disable showing statistics
+                               in the command bar
 |ags_stats_max_ln|...............The maximum number of lines
                                before disabling statistics
 |ags_agargs|.....................The predefined ag args
@@ -73,6 +75,14 @@ This is the max-count parameter to be passed to ag >
                                                 *ags_agcontext*
 This is the context parameter to be passed to ag >
     let g:ags_agcontext = 3
+<
+
+                                                 *ags_no_stats*
+Flag to disable showing statistics in the command bar. This
+could be used when displaying statistics in a status line plugin
+such as lightline. In that case use ags#get_status_string to get
+status line information.
+    let g:ags_no_stats = 0
 <
 
                                              *ags_stats_max_ln*
