@@ -23,10 +23,10 @@ Works with ag version >= 0.29.1
 Here are a couple of screenshots of the search results window
 
 #### View mode (with [lightline](https://github.com/itchyny/lightline.vim) integration)
-<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot4.png" />
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot5.png" />
 
-#### Edit mode  
-<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot3-edit-mode.png" />
+#### Edit mode (with [lightline](https://github.com/itchyny/lightline.vim) integration)
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot4-edit-mode.png" />
 
 ### Similar Plugins
 [ag.vim](https://github.com/rking/ag.vim)
