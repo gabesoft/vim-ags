@@ -26,7 +26,7 @@ Here are a couple of screenshots of the search results window
 <img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot7.png" />
 
 #### Edit mode (with [lightline](https://github.com/itchyny/lightline.vim) integration)
-<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot5-edit-mode.png" />
+<img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot6-edit-mode.png" />
 
 ### Similar Plugins
 [ag.vim](https://github.com/rking/ag.vim)
