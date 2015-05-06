@@ -1,4 +1,4 @@
-" Types of patters
+" Types of patterns
 "   - file path
 "   - line number
 "   - column number

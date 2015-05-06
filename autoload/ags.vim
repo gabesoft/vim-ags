@@ -307,8 +307,8 @@ function! ags#cleanYankedText()
 
     let text = @0
     let text = s:gsub(text,  ':file:', '\1')
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '\1')
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '\1')
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '')
+    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '')
     let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
     let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
 
