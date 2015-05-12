@@ -18,6 +18,7 @@ CONTENTS                                       *ags-contents*
     2. Options...........................|ags-options|
     3. Commands..........................|ags-commands|
     4. Mappings..........................|ags-mappings|
+    5. Statusline........................|ags-statusline|
     5. Limitations.......................|ags-limitations|
 
 =============================================================
@@ -198,6 +199,12 @@ Once inside the search results window:~
 
     q    - close the search results window
     u    - displays these key mappings
+
+=============================================================
+STATUSLINE                                   *ags-statusline*
+
+To display search results info in the status line use ags#get_status_string()
+See also |ags_no_stats| and |ags_stats_max_ln|
 
 =============================================================
 LIMITATIONS                                 *ags-limitations*
