@@ -17,9 +17,7 @@ let s:patt = {
             \ 'fileCapture'      : '[1;31m\(.\{-}\)[0m[K',
             \ 'result'           : '[32;40m.\{-}[0m[K',
             \ 'resultCapture'    : '\[32;40m\(.\{-}\)\[0m\[K',
-            \ 'resultReplace'    : '[32;40m\1[0m[K',
-            \ 'resultHlCapture'  : '\[32;40m\[#m\(.\{-}\)\[#m\[0m\[K',
-            \ 'resultHlReplace'  : '[32;40m[#m\1[#m[0m[K'
+            \ 'resultReplace'    : '[32;40m\1[0m[K'
             \ }
 
 " Search results usage
@@ -318,7 +316,6 @@ function! ags#cleanYankedText()
     let text = substitute(text, s:patt.fileCapture, '\1', 'g')
     let text = substitute(text, s:patt.lineColNoCapture, '', 'g')
     let text = substitute(text, s:patt.lineNoCapture, '', 'g')
-    let text = substitute(text, s:patt.resultHlCapture, '\1', 'g')
     let text = substitute(text, s:patt.resultCapture, '\1', 'g')
 
     call s:copyText(text)
@@ -354,26 +351,6 @@ function! ags#openFile(lineNo, flags, preview)
     endif
 endfunction
 
-" Clears the highlighted result pattern if any
-"
-function! ags#clearHlResult()
-    if empty(s:hlpos) | return | endif
-
-    let lineNo  = s:hlpos[1]
-    let lastNo  = line('$')
-    let s:hlpos = []
-
-    if lineNo < 0 || lineNo > lastNo | return | endif
-
-    let pos  = getpos('.')
-    let expr = s:patt.resultHlCapture
-    let repl = s:patt.resultReplace
-    let cmd  = 'silent ' . lineNo . 's/\m' . expr . '/' . repl . '/ge'
-
-    call s:execw(cmd)
-    call setpos('.', pos)
-endfunction
-
 " Navigates the next result pattern on the same line
 "
 function! ags#navigateResultsOnLine()
@@ -393,7 +370,6 @@ endfunction
 function! ags#navigateResults(...)
     let flags = a:0 > 0 ? a:1 : 'w'
 
-    call ags#clearHlResult()
     call search(s:patt.result, flags)
     call matchadd('agsvResultPatternOn', '\%#' . s:patt.result, 999)
     call s:printStats(1, 1, 0)
@@ -403,7 +379,6 @@ endfunction
 "
 " {flags} search flags (b, B, w, W)
 function! ags#navigateResultsFiles(...)
-    call ags#clearHlResult()
     let flags = a:0 > 0 ? a:1 : 'w'
     call search(s:patt.file, flags)
     exec 'normal zt'
