@@ -391,24 +391,11 @@ endfunction
 " {flags} search flags (b, B, w, W)
 "
 function! ags#navigateResults(...)
-    call ags#clearHlResult()
-
     let flags = a:0 > 0 ? a:1 : 'w'
+
+    call ags#clearHlResult()
     call search(s:patt.result, flags)
-
-    let pos  = getpos('.')
-    let line = getline('.')
-    let row  = pos[1]
-    let col  = pos[2]
-
-    let expr = s:patt.resultCapture
-    let repl = s:patt.resultHlReplace
-    let cmd  = 'silent ' . row . 's/\m\%' . col . 'c' . expr . '/' . repl . '/e'
-
-    call s:execw(cmd)
-    call setpos('.', pos)
-
-    let s:hlpos = pos
+    call matchadd('agsvResultPatternOn', '\%#' . s:patt.result, 999)
     call s:printStats(1, 1, 0)
 endfunction
 
