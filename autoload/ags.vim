@@ -15,9 +15,13 @@ let s:sub  = function('ags#pat#sub')
 
 " Regex patterns cache
 let s:patt = {
-            \ 'result' : s:pat(':resultStart:\%(.\{-1,}\):end:'),
-            \ 'lineNo' : s:pat('^:lineStart:\(\d\{1,}\)'),
-            \ 'file'   : s:pat('^:file:$')
+            \ 'lineNo'          : s:pat('^:lineStart:\(\d\{1,}\)'),
+            \ 'file'            : s:pat('^:file:$'),
+            \ 'result'          : s:pat(':resultStart:.\{-}:end:'),
+            \ 'resultCapture'   : s:pat(':\resultStart:\(.\{-}\):\end:'),
+            \ 'resultReplace'   : s:pat(':resultStart:\1:end:'),
+            \ 'resultHlCapture' : s:pat(':\resultStart::\hlDelim:\(.\{-}\):\hlDelim::\end:'),
+            \ 'resultHlReplace' : s:pat(':resultStart::hlDelim:\1:hlDelim::end:')
             \ }
 
 " Search results usage
@@ -123,6 +127,7 @@ function! s:gatherStatistics(lines)
     let fileCount  = 0
     let index      = 0
     let llines     = len(a:lines)
+    let curFile    = ''
 
     while index < llines
         let line      = a:lines[index]
@@ -130,6 +135,7 @@ function! s:gatherStatistics(lines)
 
         if line =~ filePat
             let fileCount = fileCount + 1
+            let curFile = substitute(line, s:patt.file, '\1', '')
         elseif line =~ resultPat
             let occurences = ags#pat#matchCount(line, resultPat, 0)
             let totalCount = totalCount + occurences
@@ -137,7 +143,12 @@ function! s:gatherStatistics(lines)
         endif
 
         let index = index + 1
-        let stats[index] = { 'file': fileCount, 'result': totalCount, 'matches': currCount }
+        let stats[index] = {
+                    \ 'file'     : fileCount,
+                    \ 'filePath' : curFile,
+                    \ 'result'   : totalCount,
+                    \ 'matches'  : currCount
+                    \ }
     endw
 
     return { 'data': stats, 'files': fileCount, 'results': totalCount }
@@ -175,6 +186,8 @@ function! s:getCurrentStats()
 
     let lnum     = line('.')
     let file     = s:stats.data[lnum].file
+    let filePath = s:stats.data[lnum].filePath
+    let filePath = filePath ? fnamemodify(filePath, ':t') : filePath
     let lmatches = s:stats.data[lnum].matches
     let fileMsg  = 'File(' . file . '/' . s:stats.files . ')'
 
@@ -188,7 +201,7 @@ function! s:getCurrentStats()
 
     let resultMsg = 'Result(' . result . '/' . s:stats.results . ')'
 
-    return { 'file': fileMsg, 'result': resultMsg }
+    return { 'file': fileMsg, 'result': resultMsg, 'filePath': filePath }
 endfunction
 
 " Prints search results statistics
@@ -230,7 +243,7 @@ endfunction
 "
 function! ags#get_status_string()
     let msg = s:getCurrentStats()
-    return empty(msg) ? '' : msg.result . ' | ' . msg.file
+    return empty(msg) ? '' : msg.result . ' ' . msg.file . ' ' . msg.filePath
 endfunction
 
 " Performs a search with the specified {args} and according to {cmd}.
@@ -273,7 +286,7 @@ function! ags#filePath(lineNo)
         let nr = nr - 1
     endw
 
-    return s:sub(getline(nr), '^:file:', '\1')
+    return substitute(getline(nr), s:patt.file, '\1', '')
 endfunction
 
 " Sets the {text} into the copy registers
@@ -357,8 +370,8 @@ function! ags#clearHlResult()
     if lineNo < 0 || lineNo > lastNo | return | endif
 
     let pos  = getpos('.')
-    let expr = s:pat(':\resultStart::\hlDelim:\(.\{-}\):\hlDelim::\end:')
-    let repl = s:pat(':resultStart:\1:end:')
+    let expr = s:patt.resultHlCapture
+    let repl = s:patt.resultReplace
     let cmd  = 'silent ' . lineNo . 's/\m' . expr . '/' . repl . '/ge'
 
     call s:execw(cmd)
@@ -385,15 +398,15 @@ function! ags#navigateResults(...)
     call ags#clearHlResult()
 
     let flags = a:0 > 0 ? a:1 : 'w'
-    call search(s:pat(':resultStart:.\{-}:end:'), flags)
+    call search(s:patt.result, flags)
 
     let pos  = getpos('.')
     let line = getline('.')
     let row  = pos[1]
     let col  = pos[2]
 
-    let expr = s:pat(':\resultStart:\(.\{-}\):\end:')
-    let repl = s:pat(':resultStart::hlDelim:\1:hlDelim::end:')
+    let expr = s:patt.resultCapture
+    let repl = s:patt.resultHlReplace
     let cmd  = 'silent ' . row . 's/\m\%' . col . 'c' . expr . '/' . repl . '/e'
 
     call s:execw(cmd)
