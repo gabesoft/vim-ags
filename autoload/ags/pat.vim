@@ -14,7 +14,6 @@ let s:lineEnd     = s:end . '-'
 let s:lineColEnd  = s:end . s:col
 let s:resultStart = '[32;40m'
 let s:hlDelim     = '[#m'
-let s:cache       = {}
 
 function! s:esc(pat)
     return substitute(a:pat, '\[', '\\[', 'g')
@@ -51,13 +50,9 @@ function! ags#pat#mkpat(...)
 
     if strlen(key) == 0 | return '' | endif
 
-    if has_key(s:cache, key) | return s:cache[key] | endif
-
     let pat = key
     let pat = substitute(pat, ':\([a-zA-Z]\{-1,}\):', '\=s:val(submatch(1))', 'g')
     let pat = substitute(pat, ':\\\([a-zA-Z]\{-1,}\):', '\=s:valEsc(submatch(1))', 'g')
-
-    let s:cache[key] = pat
 
     return pat
 endfunction

@@ -27,10 +27,11 @@ command! -buffer AgsViewFileReuse call ags#openFile(line('.'), 'u', 1)
 
 command! -buffer AgsUsage call ags#usage()
 
-nnoremap <silent><buffer> r :call ags#navigateResults('W')<CR>
-nnoremap <silent><buffer> R :call ags#navigateResults('bW')<CR>
-nnoremap <buffer> p :AgsNextFile<CR>
-nnoremap <buffer> P :AgsPrevFile<CR>
+nnoremap <silent><buffer> r :AgsNextResult<CR>
+nnoremap <silent><buffer> R :AgsPrevResult<CR>
+nnoremap <silent><buffer> p :AgsNextFile<CR>
+nnoremap <silent><buffer> P :AgsPrevFile<CR>
+
 nnoremap <buffer> a :AgsFilePathShow<CR>
 nnoremap <buffer> c :AgsFilePathCopy<CR>
 nnoremap <buffer> E :AgsEditSearchResults<CR>

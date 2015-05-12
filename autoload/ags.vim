@@ -8,20 +8,18 @@ let s:lastCopy = ''
 " Search results statistics
 let s:stats = {}
 
-" Regex pattern functions
-let s:pat  = function('ags#pat#mkpat')
-let s:gsub = function('ags#pat#gsub')
-let s:sub  = function('ags#pat#sub')
-
 " Regex patterns cache
 let s:patt = {
-            \ 'lineNo'          : s:pat('^:lineStart:\(\d\{1,}\)'),
-            \ 'file'            : s:pat('^:file:$'),
-            \ 'result'          : s:pat(':resultStart:.\{-}:end:'),
-            \ 'resultCapture'   : s:pat(':\resultStart:\(.\{-}\):\end:'),
-            \ 'resultReplace'   : s:pat(':resultStart:\1:end:'),
-            \ 'resultHlCapture' : s:pat(':\resultStart::\hlDelim:\(.\{-}\):\hlDelim::\end:'),
-            \ 'resultHlReplace' : s:pat(':resultStart::hlDelim:\1:hlDelim::end:')
+            \ 'lineNo'           : '^[1;30m\(\d\{1,}\)',
+            \ 'lineNoCapture'    : '\[1;30m\([ 0-9]\{-1,}\)\[0m\[K-',
+            \ 'lineColNoCapture' : '\[1;30m\([ 0-9]\{-1,}\)\[0m\[K:\d\{-1,}:',
+            \ 'file'             : '^[1;31m.\{-}[0m[K$',
+            \ 'fileCapture'      : '[1;31m\(.\{-}\)[0m[K',
+            \ 'result'           : '[32;40m.\{-}[0m[K',
+            \ 'resultCapture'    : '\[32;40m\(.\{-}\)\[0m\[K',
+            \ 'resultReplace'    : '[32;40m\1[0m[K',
+            \ 'resultHlCapture'  : '\[32;40m\[#m\(.\{-}\)\[#m\[0m\[K',
+            \ 'resultHlReplace'  : '[32;40m[#m\1[#m[0m[K'
             \ }
 
 " Search results usage
@@ -107,7 +105,7 @@ function! s:processSearchData(data)
         let wlen = lmaxlen - llen
 
         " right justify line numbers and add a space after
-        let line = s:sub(line, s:patt.lineNo, ':lineStart:' . repeat(' ', wlen) . '\1 ')
+        let line = substitute(line, s:patt.lineNo, '[1;30m' . repeat(' ', wlen) . '\1 ', '')
 
         call add(results, line)
     endfor
@@ -121,8 +119,6 @@ function! s:gatherStatistics(lines)
     if len(a:lines) > g:ags_stats_max_ln | return {} | endif
 
     let stats      = {}
-    let resultPat  = s:patt.result
-    let filePat    = s:patt.file
     let totalCount = 0
     let fileCount  = 0
     let index      = 0
@@ -133,11 +129,11 @@ function! s:gatherStatistics(lines)
         let line      = a:lines[index]
         let currCount = 0
 
-        if line =~ filePat
+        if line =~ s:patt.file
             let fileCount = fileCount + 1
-            let curFile = substitute(line, s:patt.file, '\1', '')
-        elseif line =~ resultPat
-            let occurences = ags#pat#matchCount(line, resultPat, 0)
+            let curFile = substitute(line, s:patt.fileCapture, '\1', '')
+        elseif line =~ s:patt.result
+            let occurences = ags#pat#matchCount(line, s:patt.result, 0)
             let totalCount = totalCount + occurences
             let currCount  = currCount + occurences
         endif
@@ -169,11 +165,11 @@ function! s:resultPosition(lineNo)
         let line = getline(a:lineNo - 1)
     endif
 
-    if line =~ s:pat('^:lineStart:\s\{}\d\{1,}\s\{}:lineColEnd:')
+    if line =~ '^[1;30m\s\{}\d\{1,}\s\{}[0m[K:\d\{-1,}:'
         let col = matchstr(line, ':\zs\d\{1,}:\@=')
     endif
 
-    let row = matchstr(line, s:pat('^:lineStart:\s\{}\zs\d\{1,}\ze\s\{}[\@='))
+    let row = matchstr(line, '^[1;30m\s\{}\zs\d\{1,}\ze\s\{}[\@=')
 
     return [0, row, col, 0]
 endfunction
@@ -187,7 +183,7 @@ function! s:getCurrentStats()
     let lnum     = line('.')
     let file     = s:stats.data[lnum].file
     let filePath = s:stats.data[lnum].filePath
-    let filePath = filePath ? fnamemodify(filePath, ':t') : filePath
+    let fileName = strlen(filePath) ? fnamemodify(filePath, ':t') : filePath
     let lmatches = s:stats.data[lnum].matches
     let fileMsg  = 'File(' . file . '/' . s:stats.files . ')'
 
@@ -201,7 +197,7 @@ function! s:getCurrentStats()
 
     let resultMsg = 'Result(' . result . '/' . s:stats.results . ')'
 
-    return { 'file': fileMsg, 'result': resultMsg, 'filePath': filePath }
+    return { 'file': fileMsg, 'result': resultMsg, 'fileName': fileName }
 endfunction
 
 " Prints search results statistics
@@ -243,7 +239,7 @@ endfunction
 "
 function! ags#get_status_string()
     let msg = s:getCurrentStats()
-    return empty(msg) ? '' : msg.result . ' ' . msg.file . ' ' . msg.filePath
+    return empty(msg) ? '' : msg.result . ' ' . msg.file . ' ' . msg.fileName
 endfunction
 
 " Performs a search with the specified {args} and according to {cmd}.
@@ -286,7 +282,7 @@ function! ags#filePath(lineNo)
         let nr = nr - 1
     endw
 
-    return substitute(getline(nr), s:patt.file, '\1', '')
+    return substitute(getline(nr), s:patt.fileCapture, '\1', '')
 endfunction
 
 " Sets the {text} into the copy registers
@@ -319,11 +315,11 @@ function! ags#cleanYankedText()
     let s:lastCopy = @0
 
     let text = @0
-    let text = s:gsub(text,  ':file:', '\1')
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineColEnd:', '')
-    let text = s:gsub(text, ':\lineStart:\([ 0-9]\{-1,}\):lineEnd:', '')
-    let text = s:gsub(text, ':resultStart::hlDelim:\(.\{-1,}\):hlDelim::end:', '\1')
-    let text = s:gsub(text, ':resultStart:\(.\{-1,}\):end:', '\1')
+    let text = substitute(text, s:patt.fileCapture, '\1', 'g')
+    let text = substitute(text, s:patt.lineColNoCapture, '', 'g')
+    let text = substitute(text, s:patt.lineNoCapture, '', 'g')
+    let text = substitute(text, s:patt.resultHlCapture, '\1', 'g')
+    let text = substitute(text, s:patt.resultCapture, '\1', 'g')
 
     call s:copyText(text)
 endfunction
@@ -422,8 +418,7 @@ endfunction
 function! ags#navigateResultsFiles(...)
     call ags#clearHlResult()
     let flags = a:0 > 0 ? a:1 : 'w'
-    let file = s:patt.file
-    call search(file, flags)
+    call search(s:patt.file, flags)
     exec 'normal zt'
     call s:printStats(0, 1, 0)
 endfunction
