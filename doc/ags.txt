@@ -11,7 +11,7 @@
 #                                                           #
 =============================================================
 
-CONTENTS                                       *ags-contents*
+CONTENTS                                         *ags-contents*
 
     1. Intro.............................|ags-intro|
     2. EditMode..........................|ags-edit-mode|
@@ -22,7 +22,7 @@ CONTENTS                                       *ags-contents*
     5. Limitations.......................|ags-limitations|
 
 =============================================================
-INTRO                                             *ags-intro*
+INTRO                                               *ags-intro*
 
 Ags is a plugin that allows accessing the search
 functionality of the silver searcher (AG) from Vim.
@@ -33,7 +33,7 @@ mode that allows for search and replace in multiple
 files.
 
 =============================================================
-EDIT MODE                                     *ags-edit-mode*
+EDIT MODE                                       *ags-edit-mode*
 
 The edit mode can be triggered by pressing E in the search
 window after running a search, or by invoking the
@@ -45,7 +45,7 @@ any changes first undo them in the search window and then
 write the search buffer again.
 
 =============================================================
-OPTIONS                                         *ags-options*
+OPTIONS                                           *ags-options*
 
 |ags_loaded|.....................Disable the plugin
 |ags_agexe|......................The ag executable path
@@ -64,17 +64,20 @@ OPTIONS                                         *ags-options*
 Detailed options:~
 
                                                     *ags_agexe*
-This is the ag executable path >
+This is the ag executable path
+>
     let g:ags_agexe = 'ag'
 <
 
                                                *ags_agmaxcount*
-This is the max-count parameter to be passed to ag >
+This is the max-count parameter to be passed to ag
+>
     let g:ags_agmaxcount = 2000
 <
 
                                                 *ags_agcontext*
-This is the context parameter to be passed to ag >
+This is the context parameter to be passed to ag
+>
     let g:ags_agcontext = 3
 <
 
@@ -83,6 +86,7 @@ Flag to disable showing statistics in the command bar. This
 could be used when displaying statistics in a status line plugin
 such as lightline. In that case use ags#get_status_string to get
 status line information.
+>
     let g:ags_no_stats = 0
 <
 
@@ -92,6 +96,7 @@ statistics info that shows when navigating results in the
 search results window. When the number of lines returned by
 ag is larger than the value of this variable the statistics
 are disabled to improve performance.
+>
     let g:ags_stats_max_ln = 5000
 <
 
@@ -100,6 +105,7 @@ This enables showing file line numbers in edit mode as visual
 cues. The file numbers as well as file paths in edit mode are
 not meant to be edited and could result in unwanted changes if
 removed.
+>
     let g:ags_edit_show_line_numbers = 0
 <
 
@@ -109,6 +115,7 @@ lines that have changed from outside vim. This could have
 mixed results as some lines will be changed and others not.
 However, the search results window will be updated with the
 file lines exactly as they appear in the file.
+>
     let g:ags_edit_skip_if_file_changed = 0
 <
 
@@ -117,6 +124,7 @@ This variable contains the predefined search arguments
 used to ensure that the search results are highlighted
 properly in Vim. Any of these arguments can be overwritten
 when entering the search command.
+>
     let g:ags_agargs = {
                 \ '--break'             : [ '', '' ],
                 \ '--color'             : [ '', '' ],
@@ -134,9 +142,9 @@ when entering the search command.
 <
 
 =============================================================
-COMMANDS                                       *ags-commands*
+COMMANDS                                         *ags-commands*
 
-                                                  *:Ags*
+                                                         *:Ags*
 :Ags [{file-type}] [{options}] {pattern} [{directory}]
 
     Runs a recursive search in {directory} for
@@ -147,36 +155,36 @@ COMMANDS                                       *ags-commands*
     the ag executable. In addition a few other options,
     as set in |ags_agargs|, will be specified for display purposes.
 
-                                               *:AgsAdd*
+                                                      *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
 
     Like |:Ags| but the matches are appended to the
     current search results.
 
-                                              *:AgsLast*
+                                                     *:AgsLast*
 :AgsLast
     Runs the last search. This could be used after entering
     edit mode to return to view mode.
 
-                                              *:AgsQuit*
+                                                     *:AgsQuit*
 :AgsQuit
 
     Closes the search results window whether in edit or
     view mode.
 
-                                 *:AgsEditSearchResults*
+                                        *:AgsEditSearchResults*
 :AgsEditSearchResults
 
     Enters edit mode if the search results is open in
     view mode.
 
-                                   *:AgsShowLastCommand*
+                                          *:AgsShowLastCommand*
 :AgsShowLastCommand
 
     Displays the command for the last search.
 
 =============================================================
-MAPPINGS                                       *ags-mappings*
+MAPPINGS                                         *ags-mappings*
 
 Once inside the search results window:~
 
@@ -201,13 +209,13 @@ Once inside the search results window:~
     u    - displays these key mappings
 
 =============================================================
-STATUSLINE                                   *ags-statusline*
+STATUSLINE                                     *ags-statusline*
 
 To display search results info in the status line use ags#get_status_string()
 See also |ags_no_stats| and |ags_stats_max_ln|
 
 =============================================================
-LIMITATIONS                                 *ags-limitations*
+LIMITATIONS                                   *ags-limitations*
 
 Performing a search could be slow if the search returns too many
 lines. To improve performance in such cases set the context argument to 0 or 1.
