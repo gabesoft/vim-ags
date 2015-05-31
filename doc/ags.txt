@@ -1,5 +1,4 @@
-*ags.txt* Ag search plugin for Vim
-*Ags*
+*ags.txt* Ag search plugin for Vim                          *Ags*
 
 =============================================================
 #                                                           #
