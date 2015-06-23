@@ -58,7 +58,7 @@ endfunction
 " This is the same as the number line width.
 "
 function! s:calculateOffset(lines)
-    return len(a:lines) < 2 ? 0 : strlen(matchstr(a:lines[1], '^\s\{}\d\{}\s'))
+    return (len(a:lines) < 2 || !g:ags_edit_show_line_numbers) ? 0 : strlen(matchstr(a:lines[1], '^\s\{}\d\{}\s'))
 endfunction
 
 " Makes a data hash map from {lines}
