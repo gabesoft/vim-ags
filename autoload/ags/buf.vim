@@ -26,7 +26,8 @@ let s:cmd = {
 "
 function! s:openWin(name, cmd)
     let bufcmd = a:cmd == 'same' ? 'buffer ' : a:cmd . ' sbuffer '
-    let wincmd = a:cmd == 'same' ? 'edit '   : a:cmd . ' new '
+    let winsize  = has_key(g:, 'ags_winsize') ? g:ags_winsize : ''
+    let wincmd = a:cmd == 'same' ? 'edit '   : a:cmd . ' ' . winsize . 'new '
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
