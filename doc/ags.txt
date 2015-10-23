@@ -58,6 +58,8 @@ OPTIONS                                           *ags-options*
 |ags_edit_show_line_numbers|.....Show line numbers in edit mode
 |ags_edit_skip_if_file_changed|..In edit mode skip write of any
                                lines that changed outside vim
+|g:ags_winheight|................The search results window
+                               height
 
 -------------------------------------------------------------
 Detailed options:~
@@ -116,6 +118,13 @@ However, the search results window will be updated with the
 file lines exactly as they appear in the file.
 >
     let g:ags_edit_skip_if_file_changed = 0
+<
+
+                                                *ags_winheight*
+This determines the search results window height. It defaults
+to half the screen.
+>
+    let g:ags_winheight = ''
 <
 
                                                    *ags_agargs*
