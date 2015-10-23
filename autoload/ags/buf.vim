@@ -23,10 +23,11 @@ let s:cmd = {
 "
 " {name} the buffer name or file path
 " {cmd}  the position command
+" {winheight} the window heigth
 "
-function! s:openWin(name, cmd)
+function! s:openWin(name, cmd, winheight)
     let bufcmd = a:cmd == 'same' ? 'buffer ' : a:cmd . ' sbuffer '
-    let wincmd = a:cmd == 'same' ? 'edit '   : a:cmd . ' new '
+    let wincmd = a:cmd == 'same' ? 'edit '   : a:cmd . ' ' . a:winheight . 'new '
 
     if bufexists(a:name)
         let nr = bufwinnr(a:name)
@@ -46,8 +47,9 @@ endfunction
 " {cmd}     one of the commands from s:cmd
 " {sameWin} true to open in the current window
 " {lastWin} true to reuse last window opened
+" {winheight} the window heigth
 "
-function! s:open(name, cmd, sameWin, lastWin)
+function! s:open(name, cmd, sameWin, lastWin, winheight)
     let cmd     = s:cmd[a:cmd]
     let sameWin = a:sameWin
     let lastWin = a:lastWin
@@ -67,7 +69,7 @@ function! s:open(name, cmd, sameWin, lastWin)
         endif
     endif
 
-    call s:openWin(a:name, sameWin ? 'same' : cmd)
+    call s:openWin(a:name, sameWin ? 'same' : cmd, a:winheight)
 
     if a:name != s:agsv && a:name != s:agse
         let s:lastWin = winnr()
@@ -86,7 +88,7 @@ function! s:close(name)
 endfunction
 
 function! ags#buf#openBuffer(name, cmd, sameWin, lastWin)
-    call s:open(a:name, a:cmd, a:sameWin, a:lastWin)
+    call s:open(a:name, a:cmd, a:sameWin, a:lastWin, '')
 endfunction
 
 " Gets the edit or view search results bufwinnr
@@ -108,12 +110,14 @@ endfunction
 "
 function! s:openResultsBuffer(name)
     let nr = s:getSearchResultsBufwinnr()
+    let winheight = g:ags_winheight
+
     if nr > 0 && nr <= winnr('$')
         call s:focus(nr)
         exec 'setlocal nomodified'
-        call s:openWin(a:name, 'same')
+        call s:openWin(a:name, 'same', '')
     else
-        call s:open(a:name, 'bottom', 0, 0)
+        call s:open(a:name, 'bottom', 0, 0, winheight)
     endif
 endfunction
 
@@ -137,7 +141,7 @@ endfunction
 "
 function! ags#buf#openEditResultsBufferIfExists()
     if bufwinnr(s:agse) != -1 || bufnr(s:agse) != -1
-        call s:open(s:agse, 'bottom', 0, 0)
+        call s:open(s:agse, 'bottom', 0, 0, '')
         return 1
     else
         return 0

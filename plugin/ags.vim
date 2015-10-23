@@ -9,6 +9,7 @@ let g:ags_stats_max_ln              = get(g:, 'ags_stats_max_ln', 5000)
 let g:ags_edit_skip_if_file_changed = get(g:, 'ags_edit_skip_if_file_changed', 0)
 let g:ags_edit_show_line_numbers    = get(g:, 'ags_edit_show_line_numbers', 0)
 let g:ags_no_stats                  = get(g:, 'ags_no_stats', 0)
+let g:ags_winheight                 = get(g:, 'ags_winheight', '')
 
 if !exists('g:ags_agargs')
     " Predefined search arguments
