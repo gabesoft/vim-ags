@@ -7,6 +7,8 @@ let s:last = ''
 " Last args
 let s:lastArgs = ''
 
+let s:id = ''
+
 function! s:remove(args, name)
     return substitute(a:args, '\s\{}' . a:name . '\(=\S\{}\)\?', '', 'g')
 endfunction
@@ -50,6 +52,24 @@ function! ags#run#ag(args)
     return system(s:cmd(a:args))
 endfunction
 
+" Runs an ag search with the givent {args} async.
+" The functions {onOut}, {onExit}, and, {onError} will be used to
+" communicate with the async process
+"
+function! ags#run#agAsync(args, onOut, onExit, onError)
+    let s:lastArgs = a:args
+    let cmd = split(s:cmd(a:args), '\s\+')
+    if s:id
+        silent! call jobstop(s:id)
+    endif
+
+    let s:id = jobstart(cmd, {
+                \ 'on_stderr': a:onError,
+                \ 'on_stdout': a:onOut,
+                \ 'on_exit': a:onExit
+                \ })
+endfunction
+
 " Runs the last ag search
 "
 function! ags#run#runLastCmd()
@@ -60,6 +80,12 @@ endfunction
 "
 function! ags#run#hasLastCmd()
     return !empty(s:lastArgs)
+endfunction
+
+" Return the arguments of the last command
+"
+function! ags#run#getLastArgs()
+    return s:lastArgs
 endfunction
 
 " Displays the last ag command executed

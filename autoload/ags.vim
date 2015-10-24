@@ -8,6 +8,13 @@ let s:lastCopy = ''
 " Search results statistics
 let s:stats = {}
 
+" Results accumulated during an async request
+let s:lines = []
+
+" Flag that indicates whether to add to the search results
+" window after a search
+let s:add = 0
+
 " Regex patterns cache
 let s:patt = {
             \ 'lineNo'           : '^[1;30m\(\d\{1,}\)',
@@ -90,6 +97,7 @@ endfunction
 "
 function! s:processSearchData(data)
     let data    = substitute(a:data, '\e', '', 'g')
+    let data    = substitute(data, '["\(\d\{-};\d\{-}\)"m', '[\1m', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 0
 
@@ -248,26 +256,63 @@ endfunction
 "
 function! ags#search(args, cmd)
     let last = a:cmd ==# 'last'
-    let add  = a:cmd ==# 'add'
+    let s:add  = a:cmd ==# 'add'
+    let args = ''
 
     if last && !ags#run#hasLastCmd()
         call ags#log#warn("There is no previous search")
         return
     elseif last
-        let data = ags#run#runLastCmd()
+        let args = ags#run#getLastArgs()
     else
         let args  = empty(a:args) ? expand('<cword>') : a:args
-        let data  = ags#run#ag(args)
     endif
 
-    let lines   = s:processSearchData(data)
+    if has('nvim')
+        let s:lines = []
+        call ags#run#agAsync(args,
+                    \ function('s:onSearchOut'),
+                    \ function('s:onSearchDone'),
+                    \ function('s:onSearchError'))
+    else
+        let data = ags#run#ag(args)
+        call s:showSearchResults(data)
+    endif
+endfunction
+
+function! s:onSearchError(job_id, data, event)
+    call ags#log#warn('Search failed ' . string(a:data))
+endfunction
+
+function! s:onSearchOut(job_id, data, event)
+    let showInfo = empty(s:lines)
+    let lines   = s:processSearchData(join(a:data, "\n"))
+    let s:lines = s:lines + lines
+
+    call s:show(lines, s:add)
+
+    let s:add = 1
+    if showInfo
+        call ags#log#info('Search started ...')
+    endif
+endfunction
+
+function! s:onSearchDone()
+    let s:stats = s:gatherStatistics(s:lines)
+    call ags#log#info('Search ready')
+endfunction
+
+function! s:showSearchResults(data)
+    let lines   = s:processSearchData(a:data)
     let s:stats = s:gatherStatistics(lines)
+    let args    = ags#run#getLastArgs()
+
     if empty(lines)
-        call ags#log#warn("No matches for " . string(a:args))
+        call ags#log#warn('No matches for ' . string(args))
     elseif len(lines) == 1
         call ags#log#warn(lines[0])
     else
-        call s:show(lines, add)
+        call s:show(lines, s:add)
     endif
 endfunction
 
