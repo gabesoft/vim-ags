@@ -121,6 +121,14 @@ function! s:openResultsBuffer(name)
     endif
 endfunction
 
+" Sets the last window {nr}
+"
+function! ags#buf#setLastWinnr(nr)
+    if !s:lastWin
+        let s:lastWin = a:nr
+    endif
+endfunction
+
 " Opens the view search results buffer and closes the edit search results
 " buffer
 "

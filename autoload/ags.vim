@@ -80,6 +80,7 @@ function! s:show(lines, ...)
         endif
     endfunction
 
+    call ags#buf#setLastWinnr(winnr())
     call ags#buf#openViewResultsBuffer()
     call s:execw(obj)
     call s:printStats(0, 0, 1)
