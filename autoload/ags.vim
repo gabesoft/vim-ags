@@ -11,6 +11,9 @@ let s:stats = {}
 " Results accumulated during an async request
 let s:lines = []
 
+" Last line of search results saved during an async request
+let s:lastLine = ''
+
 " Flag that indicates whether to add to the search results
 " window after a search
 let s:add = 0
@@ -93,18 +96,26 @@ function! s:show(lines, ...)
     call s:printStats(0, 0, 1)
 endfunction
 
+function! s:isNewLine(data)
+    let data    = substitute(a:data, '\e', '', 'g')
+    let data    = substitute(data, '["\(\d\{-};\d\{-}\)"m', '[\1m', 'g')
+    return data =~ s:patt.lineNo || data =~ s:patt.file
+endfunction
+
 " Prepares the search {data} for display
 "
 function! s:processSearchData(data)
     let data    = substitute(a:data, '\e', '', 'g')
     let data    = substitute(data, '["\(\d\{-};\d\{-}\)"m', '[\1m', 'g')
     let lines   = split(data, '\n')
-    let lmaxlen = 0
+    let lmaxlen = 9
 
-    for line in lines
-        let lmatch  = matchstr(line, s:patt.lineNo)
-        let lmaxlen = max([ strlen(lmatch), lmaxlen ])
-    endfor
+    if !s:asyncEnabled()
+        for line in lines
+            let lmatch  = matchstr(line, s:patt.lineNo)
+            let lmaxlen = max([ strlen(lmatch), lmaxlen ])
+        endfor
+    endif
 
     let results = []
     for line in lines
@@ -241,6 +252,109 @@ function! s:printStats(r, f, t)
     echohl None
 endfunction
 
+" Sets the {text} into the copy registers
+"
+function! s:copyText(text)
+    if &clipboard =~ '\<unnamed\>'
+        let @* = a:text
+        let @@ = a:text
+    elseif &clipboard =~ '\<unnamedplus\>' && has('\<unnamedplus\>')
+        let @+ = a:text
+        let @@ = a:text
+    endif
+endfunction
+
+" Returns true if async operations are available and enabled
+"
+function! s:asyncEnabled()
+    return g:ags_enable_async && has('nvim')
+endfunction
+
+" Displays an error when an async search fails
+"
+function! s:onSearchError(job_id, data, event)
+    call ags#log#warn(string(a:data))
+endfunction
+
+" Populates the search results window during an async search
+"
+function! s:onSearchOut(job_id, data, event)
+    let first = ''
+    let last = ''
+    let lines = []
+    let hasLast = strlen(s:lastLine) > 0
+
+    if len(a:data) == 1
+        if hasLast
+            let last = a:data[0]
+        else
+            let first = a:data[0]
+        endif
+    elseif len(a:data) > 1
+        let first = a:data[0]
+        let last = a:data[-1]
+        let lines = a:data[1:-2]
+    endif
+
+    if s:isNewLine(first)
+        let lines = [first] + lines
+        if hasLast
+            let lines = [s:lastLine] + lines
+        endif
+    else
+        let lines = [s:lastLine . first] + lines
+    endif
+
+    let s:lastLine = last
+
+    let data = join(lines, "\n")
+    let start = empty(s:lines)
+
+    call s:showSearchResults(data)
+
+    if start
+        call ags#log#info('Search started')
+        redraw
+    else
+        call ags#log#info('Searching...')
+    end
+
+    let s:add = 1
+endfunction
+
+" Prints a message when an async search is done
+"
+function! s:onSearchDone(job_id, data, event)
+    call s:showSearchResults(s:lastLine)
+    call ags#log#info('Search complete')
+    call s:afterSearchDone()
+endfunction
+
+" Displays the search {data} in the results window
+"
+function! s:showSearchResults(data)
+    let lines   = s:processSearchData(a:data)
+    let args    = ags#run#getLastArgs()
+    let s:lines = s:lines + lines
+
+    if !s:asyncEnabled() && len(lines) == 1
+        call ags#log#warn(lines[0])
+    elseif len(lines) > 1
+        call s:show(lines, s:add)
+    endif
+endfunction
+
+" Collects statistics after a search is done
+"
+function! s:afterSearchDone()
+    if empty(s:lines)
+        let args = ags#run#getLastArgs()
+        call ags#log#warn('No matches for ' . string(args))
+    else
+        let s:stats = s:gatherStatistics(s:lines)
+    endif
+endfunction
+
 " Returns a string that could be used in the status line to indicate
 " the current cursor position within the search results
 "
@@ -255,9 +369,10 @@ endfunction
 " {cmd|last} ignores {args} and runs the last search
 "
 function! ags#search(args, cmd)
-    let last = a:cmd ==# 'last'
-    let s:add  = a:cmd ==# 'add'
-    let args = ''
+    let last    = a:cmd ==# 'last'
+    let s:add   = a:cmd ==# 'add'
+    let args    = ''
+    let s:lines = []
 
     if last && !ags#run#hasLastCmd()
         call ags#log#warn("There is no previous search")
@@ -268,8 +383,7 @@ function! ags#search(args, cmd)
         let args  = empty(a:args) ? expand('<cword>') : a:args
     endif
 
-    if has('nvim')
-        let s:lines = []
+    if s:asyncEnabled()
         call ags#run#agAsync(args,
                     \ function('s:onSearchOut'),
                     \ function('s:onSearchDone'),
@@ -277,42 +391,7 @@ function! ags#search(args, cmd)
     else
         let data = ags#run#ag(args)
         call s:showSearchResults(data)
-    endif
-endfunction
-
-function! s:onSearchError(job_id, data, event)
-    call ags#log#warn('Search failed ' . string(a:data))
-endfunction
-
-function! s:onSearchOut(job_id, data, event)
-    let showInfo = empty(s:lines)
-    let lines   = s:processSearchData(join(a:data, "\n"))
-    let s:lines = s:lines + lines
-
-    call s:show(lines, s:add)
-
-    let s:add = 1
-    if showInfo
-        call ags#log#info('Search started ...')
-    endif
-endfunction
-
-function! s:onSearchDone()
-    let s:stats = s:gatherStatistics(s:lines)
-    call ags#log#info('Search ready')
-endfunction
-
-function! s:showSearchResults(data)
-    let lines   = s:processSearchData(a:data)
-    let s:stats = s:gatherStatistics(lines)
-    let args    = ags#run#getLastArgs()
-
-    if empty(lines)
-        call ags#log#warn('No matches for ' . string(args))
-    elseif len(lines) == 1
-        call ags#log#warn(lines[0])
-    else
-        call s:show(lines, s:add)
+        call s:afterSearchDone()
     endif
 endfunction
 
@@ -327,18 +406,6 @@ function! ags#filePath(lineNo)
     endw
 
     return substitute(getline(nr), s:patt.fileCapture, '\1', '')
-endfunction
-
-" Sets the {text} into the copy registers
-"
-function! s:copyText(text)
-    if &clipboard =~ '\<unnamed\>'
-        let @* = a:text
-        let @@ = a:text
-    elseif &clipboard =~ '\<unnamedplus\>' && has('\<unnamedplus\>')
-        let @+ = a:text
-        let @@ = a:text
-    endif
 endfunction
 
 " Copies to clipboard the file path for the search results

@@ -50,6 +50,7 @@ OPTIONS                                           *ags-options*
 |ags_agexe|......................The ag executable path
 |ags_agmaxcount|.................The --max-count ag param
 |ags_agcontext|..................The --context ag param
+|ags_enable_async|...............Enable async search if supported
 |ags_no_stats|...................Disable showing statistics
                                in the command bar
 |ags_stats_max_ln|...............The maximum number of lines
@@ -80,6 +81,13 @@ This is the max-count parameter to be passed to ag
 This is the context parameter to be passed to ag
 >
     let g:ags_agcontext = 3
+<
+
+                                              *ags_enable_async*
+This is a flag that determines whether to run the ag search
+asynchronously when supported (currently only in neovim)
+>
+    let g:ags_enable_async = 1
 <
 
                                                  *ags_no_stats*
