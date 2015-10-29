@@ -270,18 +270,13 @@ function! s:asyncEnabled()
     return g:ags_enable_async && has('nvim')
 endfunction
 
-" Displays an error when an async search fails
+" Returns the next lines to be displayed given the {data} received
+" during an stdout event
 "
-function! s:onSearchError(job_id, data, event)
-    call ags#log#warn(string(a:data))
-endfunction
-
-" Populates the search results window during an async search
-"
-function! s:onSearchOut(job_id, data, event)
-    let first = ''
-    let last = ''
-    let lines = []
+function! s:getAsyncLines(data)
+    let first   = ''
+    let last    = ''
+    let lines   = []
     let hasLast = strlen(s:lastLine) > 0
 
     if len(a:data) == 1
@@ -307,7 +302,20 @@ function! s:onSearchOut(job_id, data, event)
 
     let s:lastLine = last
 
-    let data = join(lines, "\n")
+    return lines
+endfunction
+
+" Displays an error when an async search fails
+"
+function! s:onSearchError(job_id, data, event)
+    call ags#log#warn(string(a:data))
+endfunction
+
+" Populates the search results window during an async search
+"
+function! s:onSearchOut(job_id, data, event)
+    let lines = s:getAsyncLines(a:data)
+    let data  = join(lines, "\n")
     let start = empty(s:lines)
 
     call s:showSearchResults(data)
