@@ -58,12 +58,29 @@ endfunction
 "
 function! ags#run#agAsync(args, onOut, onExit, onError)
     let s:lastArgs = a:args
-    let cmd = split(s:cmd(a:args), '\s\+')
+    let pat = '"\([^"]\+\)"\|\([^ ]\+\)'
+    let idx = 0
+    let cmd = s:cmd(a:args)
+    let len = strlen(cmd)
+    let lst = []
+
+    while match(cmd, pat, idx) > -1 && idx < len
+        let mat = matchlist(cmd, pat, idx)
+        let cur = mat[1]
+
+        if strlen(cur) == 0
+            let cur = mat[0]
+        endif
+
+        let idx = match(cmd, pat, idx) + strlen(mat[0])
+        call add(lst,  cur)
+    endwhile
+
     if s:id
         silent! call jobstop(s:id)
     endif
 
-    let s:id = jobstart(cmd, {
+    let s:id = jobstart(lst, {
                 \ 'on_stderr': a:onError,
                 \ 'on_stdout': a:onOut,
                 \ 'on_exit': a:onExit
