@@ -1,8 +1,21 @@
+" Buffer name
+function! s:resBufName(name)
+    if g:ags_results_per_tab == 1
+        return tabpagenr() . '-' . a:name
+    else
+        return a:name
+    endif
+endfunction
+
 " The search results buffer name (view mode)
-let s:agsv = 'search-results.agsv'
+function! s:agsv()
+    return s:resBufName('search-results.agsv')
+endfunction
 
 " The search results buffer name (edit mode)
-let s:agse = 'search-results.agse'
+function! s:agse()
+    return s:resBufName('search-results.agse')
+endfunction
 
 " The last window where a file from search results was opened
 let s:lastWin = 0
@@ -59,7 +72,7 @@ function! s:open(name, cmd, sameWin, lastWin, winheight)
     endif
 
     if lastWin
-        let searchWin = s:lastWin == bufwinnr(s:agsv) || s:lastWin == bufwinnr(s:agse)
+        let searchWin = s:lastWin == bufwinnr(s:agsv()) || s:lastWin == bufwinnr(s:agse())
         if !searchWin && s:lastWin <= winnr('$')
             call s:focus(s:lastWin)
             let sameWin = 1
@@ -71,7 +84,7 @@ function! s:open(name, cmd, sameWin, lastWin, winheight)
 
     call s:openWin(a:name, sameWin ? 'same' : cmd, a:winheight)
 
-    if a:name != s:agsv && a:name != s:agse
+    if a:name != s:agsv() && a:name != s:agse()
         let s:lastWin = winnr()
     endif
 endfunction
@@ -94,8 +107,8 @@ endfunction
 " Gets the edit or view search results bufwinnr
 "
 function! s:getSearchResultsBufwinnr()
-    let nr = bufwinnr(s:agsv)
-    return nr == -1 ? bufwinnr(s:agse) : nr
+    let nr = bufwinnr(s:agsv())
+    return nr == -1 ? bufwinnr(s:agse()) : nr
 endfunction
 
 " Focuses the window with {nr}
@@ -133,23 +146,23 @@ endfunction
 " buffer
 "
 function! ags#buf#openViewResultsBuffer()
-    call s:openResultsBuffer(s:agsv)
-    call s:close(s:agse)
+    call s:openResultsBuffer(s:agsv())
+    call s:close(s:agse())
 endfunction
 
 " Opens the edit search results buffer and closes the view search results
 " buffer
 "
 function! ags#buf#openEditResultsBuffer()
-    call s:openResultsBuffer(s:agse)
-    call s:close(s:agsv)
+    call s:openResultsBuffer(s:agse())
+    call s:close(s:agsv())
 endfunction
 
 " Opens the edit results buffer if it exists and returns 1; otherwise, it returns 0
 "
 function! ags#buf#openEditResultsBufferIfExists()
-    if bufwinnr(s:agse) != -1 || bufnr(s:agse) != -1
-        call s:open(s:agse, 'bottom', 0, 0, '')
+    if bufwinnr(s:agse()) != -1 || bufnr(s:agse()) != -1
+        call s:open(s:agse(), 'bottom', 0, 0, '')
         return 1
     else
         return 0
@@ -166,7 +179,7 @@ endfunction
 " Returns all lines from the view search results buffer
 "
 function! ags#buf#readViewResultsBuffer()
-    let name = s:agsv
+    let name = s:agsv()
     if bufexists(name)
         let nr = bufnr(name)
         return getbufline(nr, 0, '$')
@@ -178,7 +191,7 @@ endfunction
 " Returns all lines from the edit search results buffer
 "
 function! ags#buf#readEditResultsBuffer()
-    let name = s:agse
+    let name = s:agse()
     if bufexists(name)
         let nr = bufnr(name)
         return getbufline(nr, 0, '$')
@@ -195,8 +208,8 @@ function! ags#buf#closeResultsBuffer()
         call s:focus(nr)
         exec 'setlocal nomodified'
     endif
-    call s:close(s:agsv)
-    call s:close(s:agse)
+    call s:close(s:agsv())
+    call s:close(s:agse())
 endfunction
 
 " Replaces all lines in buffer with the specified lines
