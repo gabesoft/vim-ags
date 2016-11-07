@@ -53,6 +53,8 @@ OPTIONS                                           *ags-options*
 |ags_enable_async|...............Enable async search if supported
 |ags_no_stats|...................Disable showing statistics
                                in the command bar
+|ags_results_per_tab|............Enable search result window per
+                               tab
 |ags_stats_max_ln|...............The maximum number of lines
                                before disabling statistics
 |ags_agargs|.....................The predefined ag args
@@ -89,6 +91,13 @@ asynchronously when supported (currently only in neovim)
 >
     let g:ags_enable_async = 1
 <
+
+                                          *ags_results_per_tab*
+This determines whether to work with a single results window or
+with one per tab.
+
+    let g:ags_results_per_tab = 0
+
 
                                                  *ags_no_stats*
 Flag to disable showing statistics in the command bar. This

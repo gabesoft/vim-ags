@@ -11,6 +11,7 @@ let g:ags_edit_show_line_numbers    = get(g:, 'ags_edit_show_line_numbers', 0)
 let g:ags_no_stats                  = get(g:, 'ags_no_stats', 0)
 let g:ags_winheight                 = get(g:, 'ags_winheight', '')
 let g:ags_enable_async              = get(g:, 'ags_enable_async', 1)
+let g:ags_results_per_tab           = get(g:, 'ags_results_per_tab', 0)
 
 if !exists('g:ags_agargs')
     " Predefined search arguments
