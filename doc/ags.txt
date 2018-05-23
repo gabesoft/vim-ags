@@ -181,7 +181,7 @@ COMMANDS                                         *ags-commands*
     as set in |ags_agargs|, will be specified for display purposes.
 
     For example
-    :Ags -js Reducer
+    :Ags --js Reducer
                                                       *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
 
