@@ -180,6 +180,8 @@ COMMANDS                                         *ags-commands*
     the ag executable. In addition a few other options,
     as set in |ags_agargs|, will be specified for display purposes.
 
+    For example
+    :Ags -js Reducer
                                                       *:AgsAdd*
 :AgsAdd [{file-type}] [{options}] {pattern} [{directory}]
 
