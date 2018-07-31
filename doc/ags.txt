@@ -63,6 +63,8 @@ OPTIONS                                           *ags-options*
                                lines that changed outside vim
 |g:ags_winheight|................The search results window
                                height
+|g:ags_winplace|.................The placement of the search
+                               results window. One of
 
 -------------------------------------------------------------
 Detailed options:~
@@ -142,6 +144,14 @@ This determines the search results window height. It defaults
 to half the screen.
 >
     let g:ags_winheight = ''
+<
+
+                                                 *ags_winplace*
+This determines the placement of the search results window. It
+defaults to |bottom|. Possible values are: |top|, |bottom|, |above|,
+|below|, |far-left|, |far-right|, |left|, |right|.
+>
+    let g:ags_winplace = 'bottom'
 <
 
                                                    *ags_agargs*
