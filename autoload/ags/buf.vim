@@ -130,7 +130,7 @@ function! s:openResultsBuffer(name)
         exec 'setlocal nomodified'
         call s:openWin(a:name, 'same', '')
     else
-        call s:open(a:name, 'bottom', 0, 0, winheight)
+        call s:open(a:name, g:ags_winplace, 0, 0, winheight)
     endif
 endfunction
 
@@ -162,7 +162,7 @@ endfunction
 "
 function! ags#buf#openEditResultsBufferIfExists()
     if bufwinnr(s:agse()) != -1 || bufnr(s:agse()) != -1
-        call s:open(s:agse(), 'bottom', 0, 0, '')
+        call s:open(s:agse(), g:ags_winplace, 0, 0, '')
         return 1
     else
         return 0
