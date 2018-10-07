@@ -309,6 +309,7 @@ endfunction
 "
 function! s:onSearchError(job_id, data, event)
     call ags#log#warn(string(a:data))
+    call ags#run#agAsyncUpdateJobId(a:job_id)
 endfunction
 
 " Populates the search results window during an async search
@@ -322,9 +323,15 @@ function! s:onSearchOut(job_id, data, event)
 
     if start
         call ags#log#info('Search started')
+        call ags#run#agAsyncUpdateJobId(a:job_id)
         redraw
     else
-        call ags#log#info('Searching...')
+        if ags#run#agAsyncWasKilled() == 0
+            call ags#log#info('Searching...')
+        else
+            call ags#log#info('Search aborted')
+        endif
+        call ags#run#agAsyncUpdateJobId(a:job_id)
     end
 
     let s:add = 1
@@ -333,8 +340,11 @@ endfunction
 " Prints a message when an async search is done
 "
 function! s:onSearchDone(job_id, data, event)
+    call ags#run#agAsyncUpdateJobId(0)
     call s:showSearchResults(s:lastLine)
-    call ags#log#info('Search complete')
+    if ags#run#agAsyncWasKilled() == 0
+        call ags#log#info('Search complete')
+    endif
     call s:afterSearchDone()
 endfunction
 
@@ -508,6 +518,7 @@ endfunction
 
 function! ags#quit()
     call ags#buf#closeResultsBuffer()
+    call ags#run#agAsyncStop()
 endfunction
 
 function! ags#usage()
