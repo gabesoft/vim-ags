@@ -8,6 +8,7 @@ let s:last = ''
 let s:lastArgs = ''
 
 let s:id = ''
+let s:job_killed = 0
 
 function! s:remove(args, name)
     return substitute(a:args, '\s\{}' . a:name . '\(=\S\{}\)\?', '', 'g')
@@ -80,11 +81,29 @@ function! ags#run#agAsync(args, onOut, onExit, onError)
         silent! call jobstop(s:id)
     endif
 
+    let s:job_killed = 0
     let s:id = jobstart(lst, {
                 \ 'on_stderr': a:onError,
                 \ 'on_stdout': a:onOut,
                 \ 'on_exit': a:onExit
                 \ })
+endfunction
+
+function! ags#run#agAsyncWasKilled()
+    if s:job_killed == 1
+        return 1
+    endif
+endfunction
+
+function! ags#run#agAsyncUpdateJobId(job_id)
+    let s:id = a:job_id
+endfunction
+
+function! ags#run#agAsyncStop()
+    if s:id != 0
+        let s:job_killed = 1
+        call jobstop(s:id)
+    endif
 endfunction
 
 " Runs the last ag search
