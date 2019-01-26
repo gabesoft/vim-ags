@@ -465,14 +465,14 @@ endfunction
 " {preview} set to true to keep focus in the search results window
 "
 function! ags#openFile(lineNo, flags, preview)
-    let path  = fnameescape(ags#filePath(a:lineNo))
+    let path  = ags#filePath(a:lineNo)
     let pos   = s:resultPosition(a:lineNo)
     let flags = has_key(s:wflags, a:flags) ? s:wflags[a:flags] : 'above'
     let wpos  = a:flags == 's'
     let reuse = a:flags == 'u'
 
     if filereadable(path)
-        call ags#buf#openBuffer(path, flags, wpos, reuse)
+        call ags#buf#openBuffer(fnameescape(path), flags, wpos, reuse)
         call setpos('.', pos)
 
         if a:preview
