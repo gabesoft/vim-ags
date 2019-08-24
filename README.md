@@ -18,7 +18,7 @@ See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt)
 
 ### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of AG  
 Despite the name `vim-ags` works with `ripgrep` as well. Heres how it
-should be configured for that.  
+should be configured for that:  
 ```
 let g:ags_agexe = 'rg'
 
