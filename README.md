@@ -17,9 +17,8 @@ The [ag](https://github.com/ggreer/the_silver_searcher) or [rg](https://github.c
 ### Usage
 See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt) or press `u` (for usage) while in the search results window.  
 
-### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of AG  
-Despite the name `vim-ags` works with `ripgrep` as well. Heres how it
-should be configured for that:  
+### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of ag(https://github.com/ggreer/the_silver_searcher)  
+Despite the name `vim-ags` works with `ripgrep` as well if configured as below:  
 ```
 let g:ags_agexe = 'rg'
 
@@ -36,7 +35,7 @@ let g:ags_agargs = {
 ```
 
 ### Notes  
-Works with ag version >= 0.29.1  
+Works with ag version >= 0.29.1 or ripgrep >= 11.0.2  
 
 ### Screenshots  
 Here are a couple of screenshots of the search results window
