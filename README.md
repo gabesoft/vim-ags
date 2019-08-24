@@ -15,7 +15,7 @@ Install via [pathogen](https://github.com/tpope/vim-pathogen), [vundle](https://
 The [ag](https://github.com/ggreer/the_silver_searcher) or [rg](https://github.com/BurntSushi/ripgrep) executable must be installed as well.  
 
 ### Usage
-See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt) or press `u` for usage while in the search results window.  
+See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt) or press `u` (for usage) while in the search results window.  
 
 ### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of AG  
 Despite the name `vim-ags` works with `ripgrep` as well. Heres how it
