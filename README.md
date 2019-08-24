@@ -16,6 +16,24 @@ _____     ____  ______
 ### Usage
 See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt)  
 
+### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of AG  
+Despite the name `vim-ags` works with `ripgrep` as well. Heres how it
+should be configured for that.  
+```
+let g:ags_agexe = 'rg'
+
+let g:ags_agargs = {
+  \ '--column'         : ['', ''],
+  \ '--line-number'    : ['', ''],
+  \ '--context'        : ['g:ags_agcontext', '-C'],
+  \ '--max-count'      : ['g:ags_agmaxcount', ''],
+  \ '--heading'        : ['',''],
+  \ '--smart-case'     : ['','-S'],
+  \ '--color'          : ['always',''],
+  \ '--colors'         : ['"match:fg:green" --colors="match:bg:black" --colors="match:style:nobold" --colors="path:fg:red" --colors="path:style:bold" --colors="line:fg:black" --colors="line:style:bold"',''],
+  \ }
+```
+
 ### Notes  
 Works with ag version >= 0.29.1  
 

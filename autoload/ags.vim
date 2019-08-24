@@ -102,10 +102,32 @@ function! s:isNewLine(data)
     return data =~ s:patt.lineNo || data =~ s:patt.file
 endfunction
 
+" If the search {data} comes from ripgrep make it look like it came from ag
+"
+function! s:cleanRipGrepData(data)
+    let cmd = has_key(g:, 'ags_agexe') ? g:ags_agexe : ''
+    if cmd !=? 'rg'
+        return a:data
+    endif
+
+    let data = a:data
+    let data = substitute(data, '[0m[1m[31m', '[1;31m', 'g')
+    let data = substitute(data, '[0m[32m[40m', '[32;40m', 'g')
+    let data = substitute(data, '[0m[1m[30m', '[1;30m', 'g')
+    let data = substitute(data, '[0m', '[0m[K', 'g')
+    let data = substitute(data, '[0m[K:[0m[K', '[0m[K-[0m[K', 'g')
+    let data = substitute(data, '[0m[K:', ':', 'g')
+    let data = substitute(data, '[0m[K-[0m[K', '[0m[K:', 'g')
+
+    return data
+endfunction
+
 " Prepares the search {data} for display
 "
 function! s:processSearchData(data)
-    let data    = substitute(a:data, '\e', '', 'g')
+    let data    = a:data
+    let data    = substitute(data, '\e', '', 'g')
+    let data    = s:cleanRipGrepData(data)
     let data    = substitute(data, '["\(\d\{-};\d\{-}\)"m', '[\1m', 'g')
     let lines   = split(data, '\n')
     let lmaxlen = 9

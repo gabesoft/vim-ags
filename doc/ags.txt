@@ -14,11 +14,11 @@ CONTENTS                                         *ags-contents*
 
     1. Intro.............................|ags-intro|
     2. EditMode..........................|ags-edit-mode|
-    2. Options...........................|ags-options|
-    3. Commands..........................|ags-commands|
-    4. Mappings..........................|ags-mappings|
-    5. Statusline........................|ags-statusline|
-    5. Limitations.......................|ags-limitations|
+    3. Options...........................|ags-options|
+    4. Commands..........................|ags-commands|
+    5. Mappings..........................|ags-mappings|
+    6. Statusline........................|ags-statusline|
+    7. Limitations.......................|ags-limitations|
 
 =============================================================
 INTRO                                               *ags-intro*
