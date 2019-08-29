@@ -36,13 +36,13 @@ let g:ags_agargs = {
 
 ### Sample Shortcut Mappings
 ```vim
-" search for the word under cursor
+" Search for the word under cursor
 nnoremap <Leader>s :Ags<Space><C-R>=expand('<cword>')<CR><CR>
-" search for the visually selected text
+" Search for the visually selected text
 vnoremap <Leader>s y:Ags<Space><C-R>='"' . escape(@", '"*?()[]{}.') . '"'<CR><CR>
-" run Ags
+" Run Ags
 nnoremap <Leader>a :Ags<Space>
-" quit Ags
+" Quit Ags
 nnoremap <Leader><Leader>a :AgsQuit<CR>
 ```
 
