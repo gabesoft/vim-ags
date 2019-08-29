@@ -116,7 +116,7 @@ function! s:cleanRipGrepData(data)
     let data = substitute(data, '[0m[1m[30m', '[1;30m', 'g')
     let data = substitute(data, '[0m', '[0m[K', 'g')
     let data = substitute(data, '[0m[K:[0m[K', '[0m[K-[0m[K', 'g')
-    let data = substitute(data, '[0m[K:', ':', 'g')
+    let data = substitute(data, '\(\d\{1,}\)[0m[K:', '\1:', 'g')
     let data = substitute(data, '[0m[K-[0m[K', '[0m[K:', 'g')
 
     return data
