@@ -35,7 +35,7 @@ let g:ags_agargs = {
 ```
 
 ### Sample Shortcut Mappings
-```vimscript
+```vim
 " search for the word under cursor
 nnoremap <Leader>s :Ags<Space><C-R>=expand('<cword>')<CR><CR>
 " search for the visually selected text
