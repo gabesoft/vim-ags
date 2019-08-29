@@ -19,7 +19,7 @@ See the [docs](https://github.com/gabesoft/vim-ags/blob/master/doc/ags.txt) or p
 
 ### Using [ripgrep](https://github.com/BurntSushi/ripgrep) instead of [ag](https://github.com/ggreer/the_silver_searcher)  
 Despite the name `vim-ags` works with `ripgrep` as well if configured as below:  
-```
+``` vimscript
 let g:ags_agexe = 'rg'
 
 let g:ags_agargs = {
@@ -32,6 +32,18 @@ let g:ags_agargs = {
   \ '--color'          : ['always',''],
   \ '--colors'         : ['"match:fg:green" --colors="match:bg:black" --colors="match:style:nobold" --colors="path:fg:red" --colors="path:style:bold" --colors="line:fg:black" --colors="line:style:bold"',''],
   \ }
+```
+
+### Sample Shortcut Mappings
+``` vimscript
+" search for the word under cursor
+nnoremap <Leader>s :Ags<Space><C-R>=expand('<cword>')<CR><CR>
+" search for the visually selected text
+vnoremap <Leader>s y:Ags<Space><C-R>='"' . escape(@", '"*?()[]{}.') . '"'<CR><CR>
+" run Ags
+nnoremap <Leader>a :Ags<Space>
+" quit Ags
+nnoremap <Leader><Leader>a :AgsQuit<CR>
 ```
 
 ### Notes  
