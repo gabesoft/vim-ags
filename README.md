@@ -30,7 +30,7 @@ let g:ags_agargs = {
   \ '--heading'        : ['',''],
   \ '--smart-case'     : ['','-S'],
   \ '--color'          : ['always',''],
-  \ '--colors'         : ['"match:fg:green" --colors="match:bg:black" --colors="match:style:nobold" --colors="path:fg:red" --colors="path:style:bold" --colors="line:fg:black" --colors="line:style:bold"',''],
+  \ '--colors'         : [['match:fg:green', 'match:bg:black', 'match:style:nobold', 'path:fg:red', 'path:style:bold', 'line:fg:black', 'line:style:bold'] ,''],
   \ }
 ```
 

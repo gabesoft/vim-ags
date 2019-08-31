@@ -31,13 +31,19 @@ function! s:cmd(args)
             continue
         endif
 
-        if value =~ '^g:'
-            let value = substitute(value, '^g:', '', '')
-            let value = get(g:, value, 0)
-        endif
+        if type(value) == type([])
+            for v in value
+                let cmd .= ' ' . key . '=' . v
+            endfor
+        else
+            if value =~ '^g:'
+                let value = substitute(value, '^g:', '', '')
+                let value = get(g:, value, 0)
+            endif
 
-        let op   = strlen(value) == 0 ? '' : '='
-        let cmd .= ' ' . key . op . value
+            let op   = strlen(value) == 0 ? '' : '='
+            let cmd .= ' ' . key . op . value
+        endif
     endfor
 
     let cmd    = cmd . ' ' . args
