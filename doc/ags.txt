@@ -61,6 +61,8 @@ OPTIONS                                           *ags-options*
 |ags_edit_show_line_numbers|.....Show line numbers in edit mode
 |ags_edit_skip_if_file_changed|..In edit mode skip write of any
                                lines that changed outside vim
+|ags_highlight|..................Highlight groups used when displaying
+                               the search results
 |g:ags_winheight|................The search results window
                                height
 |g:ags_winplace|.................The placement of the search
@@ -139,6 +141,25 @@ file lines exactly as they appear in the file.
     let g:ags_edit_skip_if_file_changed = 0
 <
 
+                                                *ags_highlight*
+Ags uses these highlight groups:
+
+    agsvFilePath
+        File paths
+
+    agsvLineNum
+        Line numbers
+
+    agsvLineNumMatch
+        Line numbers for lines containing search matches
+
+    agsvResultPattern
+        Search match
+
+    agsvResultPatternOn
+        Current search match
+
+
                                                 *ags_winheight*
 This determines the search results window height. It defaults
 to half the screen.
@@ -157,8 +178,12 @@ defaults to |bottom|. Possible values are: |top|, |bottom|, |above|,
                                                    *ags_agargs*
 This variable contains the predefined search arguments
 used to ensure that the search results are highlighted
-properly in Vim. Any of these arguments can be overwritten
-when entering the search command.
+properly in Vim. This can be customized but the color
+arguments should not be modified though since they are used by
+Ags to determine where the file paths and search results are
+within the data received from the search command. They are not
+used when displaying the search results. For changing the
+colors used to display the search results see |ags_highlight|.
 >
     let g:ags_agargs = {
                 \ '--break'             : [ '', '' ],
