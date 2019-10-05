@@ -541,6 +541,7 @@ endfunction
 function! ags#quit()
     call ags#buf#closeResultsBuffer()
     call ags#run#agAsyncStop()
+    exec winnr('#') . 'wincmd w'
 endfunction
 
 function! ags#usage()
