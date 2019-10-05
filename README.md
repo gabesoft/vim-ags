@@ -59,6 +59,4 @@ Here are a couple of screenshots of the search results window
 <img src="https://github.com/gabesoft/vim-ags/raw/master/assets/screen-shot6-edit-mode.png" />
 
 ### Similar Plugins
-[ag.vim](https://github.com/rking/ag.vim)
-[epmatsw/ag.vim](https://github.com/epmatsw/ag.vim)
-[ervandew/ag](https://github.com/ervandew/ag)
+[ctrlsf](https://github.com/dyng/ctrlsf.vim)
