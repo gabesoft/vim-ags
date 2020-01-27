@@ -466,13 +466,12 @@ function! ags#cleanYankedText()
         return
     endif
 
-    let text = regcontents
-    let text = substitute(text, s:patt.fileCapture, '\1', 'g')
-    let text = substitute(text, s:patt.lineColNoCapture, '', 'g')
-    let text = substitute(text, s:patt.lineNoCapture, '', 'g')
-    let text = substitute(text, s:patt.resultCapture, '\1', 'g')
+    let regcontents = substitute(regcontents, s:patt.fileCapture, '\1', 'g')
+    let regcontents = substitute(regcontents, s:patt.lineColNoCapture, '', 'g')
+    let regcontents = substitute(regcontents, s:patt.lineNoCapture, '', 'g')
+    let regcontents = substitute(regcontents, s:patt.resultCapture, '\1', 'g')
 
-    call setreg(regname, text)
+    call setreg(regname, regcontents)
 endfunction
 
 " Opens a results file
