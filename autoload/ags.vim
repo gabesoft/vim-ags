@@ -2,9 +2,6 @@
 " The position of the last highlighted search pattern
 let s:hlpos = []
 
-" Last copied value
-let s:lastCopy = ''
-
 " Search results statistics
 let s:stats = {}
 
@@ -278,11 +275,11 @@ endfunction
 "
 function! s:copyText(text)
     if &clipboard =~ '\<unnamed\>'
-        let @* = a:text
-        let @@ = a:text
-    elseif &clipboard =~ '\<unnamedplus\>' && has('\<unnamedplus\>')
-        let @+ = a:text
-        let @@ = a:text
+        call setreg('*', a:text)
+        call setreg('@', a:text)
+    elseif &clipboard =~ '\<unnamedplus\>' && has('unnamedplus')
+        call setreg('+', a:text)
+        call setreg('@', a:text)
     endif
 endfunction
 
@@ -458,20 +455,24 @@ function! ags#copyFilePath(lineNo, fullPath)
     return 'Copied ' . file
 endfunction
 
-" Removes any delimiters from the yanked text
+" Removes any delimiters from the yanked text. This function
+" should be called from a TextYankPost event.
 "
 function! ags#cleanYankedText()
-    if empty(@0) || @0 == s:lastCopy | return | endif
+    let regname = v:event.regname
+    let regcontents = getreg(regname)
 
-    let s:lastCopy = @0
+    if empty(regcontents)
+        return
+    endif
 
-    let text = @0
+    let text = regcontents
     let text = substitute(text, s:patt.fileCapture, '\1', 'g')
     let text = substitute(text, s:patt.lineColNoCapture, '', 'g')
     let text = substitute(text, s:patt.lineNoCapture, '', 'g')
     let text = substitute(text, s:patt.resultCapture, '\1', 'g')
 
-    call s:copyText(text)
+    call setreg(regname, text)
 endfunction
 
 " Opens a results file
